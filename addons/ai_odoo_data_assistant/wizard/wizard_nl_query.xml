@@ -6,6 +6,7 @@
             <form string="AI Query Assistant">
                 <group>
                     <field name="user_query"/>
+                    <field name="model_id"/>
                 </group>
                 <footer>
                     <button name="action_execute" type="object" string="Run Query" class="btn-primary"/>

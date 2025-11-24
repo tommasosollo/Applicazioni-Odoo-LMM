@@ -1,7 +1,6 @@
 import requests
 import json
 from odoo import models
-from odoo.exceptions import UserError
 
 class AIService(models.AbstractModel):
     _name = "ai.data.assistant.service"
@@ -12,27 +11,34 @@ class AIService(models.AbstractModel):
         api_key = icp.get_param("ai_data_assistant.api_key")
         if not api_key:
             raise ValueError("API key non configurata")
-        
-        url = "https://api.openai.com/v1/chat/completions"
+
+        url = "https://api.openai.com/v1/responses"
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
             "Content-Type": "application/json"
         }
 
         payload = {
-            "model": "gpt-4o-mini",
-            "messages": [{"role": "user", "content": prompt}]
+            "model": "gpt-4.1-mini",
+            "input": prompt
         }
-        
+
         try:
             r = requests.post(url, json=payload, headers=headers, timeout=30)
-            r.raise_for_status()
-            print("LLM raw response:", r.text)
-            data = r.json()
-            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if not content:
-                raise ValueError("LLM ha restituito risposta vuota")
-            return content
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"Errore nella chiamata all'LLM: {e}") from e
+            print("Raw LLM response:", r.text)
 
+            r.raise_for_status()
+            data = r.json()
+
+            # NUOVO FORMATO /v1/responses
+            output = data.get("output", [])
+            if not output:
+                raise ValueError("LLM ha restituito output vuoto")
+
+            # ritorna direttamente la LISTA completa
+            return output
+
+
+        except requests.exceptions.RequestException as e:
+            # errore dettagliato
+            raise ValueError(f"Errore nella chiamata all'LLM: {r.text}") from e
