@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    container_name: odoo-db
+    container_name: odoo-ai-db
     environment:
       POSTGRES_DB: odoo
       POSTGRES_USER: odoo
@@ -13,7 +13,7 @@ services:
 
   odoo:
     image: odoo:19.0
-    container_name: odoo19
+    container_name: odoo-ai-19
     depends_on:
       - db
     ports:

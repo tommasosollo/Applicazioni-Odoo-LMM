@@ -14,7 +14,7 @@ VALUES: {values}
 Compiti:
 1. Identifica possibili duplicati basandoti su nome, email, codice, descrizione.
 2. Suggerisci normalizzazioni.
-3. Restituisci un JSON con:
+3. Restituisci solo un JSON con:
 {{"duplicates": [...], "normalized_values": {{...}}}}
 """
         return self._call_llm(prompt)

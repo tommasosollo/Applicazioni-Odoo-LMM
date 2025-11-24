@@ -17,4 +17,7 @@ class NLQueryWizard(models.TransientModel):
             "res_model": q["model"],
             "view_mode": "tree,form",
             "domain": q["domain"],
+            "target": "current",
         }
+
+

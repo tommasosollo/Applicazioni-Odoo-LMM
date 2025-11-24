@@ -39,3 +39,37 @@ Nota: l'endpoint deve accettare POST JSON con chiavi `model` e `input` (adattare
 - Per ambienti di produzione, usa un proxy per il provider LLM e limita il traffico.
 - Configura i permessi gruppo `AI Data Assistant / Manager` per operazioni di merge automatiche.
 
+
+
+# ISTRUZIONI DI INSTALLAZIONE
+
+Copia la cartella ai_data_assistant dentro:
+
+odoo/addons/
+
+
+Riavvia Odoo:
+
+./odoo-bin -u ai_data_assistant
+
+
+Vai su:
+Impostazioni → AI Data Assistant
+
+Inserisci:
+
+API Key
+
+Nome modello
+
+Livello analisi
+
+# MIGLIORAMENTI FUTURI
+
+Integrazione con embeddings + FAISS
+
+Generatore di report PDF automatici
+
+Dashboard analisi ridondanza cross-modello
+
+Plugin per filtri dinamici GPT-driven in tutte le liste Odoo
