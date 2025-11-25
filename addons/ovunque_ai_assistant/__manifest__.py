@@ -16,10 +16,10 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'ovunque/static/src/js/search_bar.js',
+            'ovunque_ai_assistant/static/src/js/search_bar.js',
         ],
         'web.assets_qweb': [
-            'ovunque/static/src/xml/search_template.xml',
+            'ovunque_ai_assistant/static/src/xml/search_template.xml',
         ],
     },
     'external_dependencies': {
