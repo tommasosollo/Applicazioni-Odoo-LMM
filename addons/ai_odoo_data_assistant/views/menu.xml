@@ -1,7 +1,0 @@
-<odoo>
-    <menuitem id="menu_ai_root" name="AI Data Assistant" sequence="20"/>
-
-    <menuitem id="menu_ai_tools"
-              name="Tools"
-              parent="menu_ai_root"/>
-</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <menuitem id="menu_ovunque" name="Ovunque AI Assistant" sequence="100"/>
+        
+        <menuitem 
+            id="menu_search_queries" 
+            parent="menu_ovunque" 
+            name="Search Queries" 
+            action="ovunque.action_search_query_view" 
+            sequence="10"/>
+        
+        <menuitem 
+            id="menu_ovunque_config" 
+            parent="menu_ovunque" 
+            name="Configuration" 
+            sequence="20"/>
+        
+        <menuitem 
+            id="menu_api_settings" 
+            parent="menu_ovunque_config" 
+            name="API Settings" 
+            action="ovunque.action_ovunque_settings" 
+            sequence="10"/>
+    </data>
+</odoo>

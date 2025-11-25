@@ -1,0 +1,33 @@
+{
+    'name': 'Ovunque - Natural Language Search for Odoo',
+    'version': '19.0.1.0.0',
+    'category': 'Tools',
+    'summary': 'Search your Odoo data using natural language with AI',
+    'author': 'Your Company',
+    'license': 'AGPL-3',
+    'depends': [
+        'base',
+        'web',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/search_query_views.xml',
+        'views/menu.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'ovunque/static/src/js/search_bar.js',
+        ],
+        'web.assets_qweb': [
+            'ovunque/static/src/xml/search_template.xml',
+        ],
+    },
+    'external_dependencies': {
+        'python': [
+            'openai',
+        ],
+    },
+    'installable': True,
+    'auto_install': False,
+    'application': False,
+}

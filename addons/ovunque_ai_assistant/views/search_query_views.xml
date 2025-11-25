@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="search_query_view_list" model="ir.ui.view">
+            <field name="name">search.query.list</field>
+            <field name="model">search.query</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="model_name"/>
+                    <field name="status" widget="badge"/>
+                    <field name="results_count"/>
+                    <field name="created_by_user"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="search_query_view_form" model="ir.ui.view">
+            <field name="name">search.query.form</field>
+            <field name="model">search.query</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_execute_search" type="object" string="Execute Search" class="btn-primary"/>
+                    </header>
+                    <sheet>
+                        <group invisible="not status">
+                            <group col="12" invisible="status != 'success'">
+                                <div class="alert alert-success" role="alert">
+                                    <span>Search executed successfully</span>
+                                </div>
+                            </group>
+                            <group col="12" invisible="status != 'error'">
+                                <div class="alert alert-danger" role="alert">
+                                    <span>Error: </span>
+                                    <field name="error_message" class="oe_inline"/>
+                                </div>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="name" placeholder="e.g., 'Show me all unpaid invoices from 2024'"/>
+                            <field name="model_name" required="True"/>
+                            <field name="status" readonly="True"/>
+                            <field name="results_count" readonly="True"/>
+                        </group>
+                        <notebook>
+                            <page string="Results">
+                                <field name="result_ids" readonly="True"/>
+                            </page>
+                            <page string="Debug Info">
+                                <group>
+                                    <field name="model_domain" widget="text" readonly="True"/>
+                                    <field name="raw_response" widget="text" readonly="True"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="search_query_view_search" model="ir.ui.view">
+            <field name="name">search.query.search</field>
+            <field name="model">search.query</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name" string="Query"/>
+                    <field name="model_name"/>
+                    <field name="created_by_user"/>
+                    <filter name="filter_success" string="Successful" domain="[('status', '=', 'success')]"/>
+                    <filter name="filter_error" string="Failed" domain="[('status', '=', 'error')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="search_query_action" model="ir.actions.act_window">
+            <field name="name">Search Queries</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">search.query</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No search queries yet. Create your first natural language search!
+                </p>
+            </field>
+        </record>
+
+        <record id="action_search_query_view" model="ir.actions.act_window">
+            <field name="name">Search Queries</field>
+            <field name="res_model">search.query</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_ovunque_settings" model="ir.actions.act_window">
+            <field name="name">API Settings</field>
+            <field name="res_model">ir.config_parameter</field>
+            <field name="view_mode">form</field>
+        </record>
+
+        <record id="search_result_view_list" model="ir.ui.view">
+            <field name="name">search.result.list</field>
+            <field name="model">search.result</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="record_id"/>
+                    <field name="record_name"/>
+                    <field name="model"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="search_result_view_form" model="ir.ui.view">
+            <field name="name">search.result.form</field>
+            <field name="model">search.result</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="query_id"/>
+                            <field name="record_id"/>
+                            <field name="record_name"/>
+                            <field name="model"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

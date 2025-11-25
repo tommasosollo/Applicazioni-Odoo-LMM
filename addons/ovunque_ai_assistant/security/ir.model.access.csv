@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_search_query_user,search_query access for users,model_search_query,base.group_user,1,1,1,0
+access_search_query_manager,search_query access for managers,model_search_query,base.group_system,1,1,1,1
+access_search_result_user,search_result access for users,model_search_result,base.group_user,1,0,0,0
+access_search_result_manager,search_result access for managers,model_search_result,base.group_system,1,1,1,1
