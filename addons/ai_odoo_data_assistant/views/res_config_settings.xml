@@ -22,15 +22,6 @@
                         <setting id="ai_redundancy_level" string="Redundancy Analysis Level">
                             <field name="ai_redundancy_level"/>
                         </setting>
-
-                        <group>
-                        <field name="ai_models_to_check_ids"
-                            widget="one2many_list"
-                            context="{'default_company_id': user.company_id.id}"
-                            domain="[('company_id', '=', user.company_id.id)]"/>
-                        </group>
-
-
                     </block>
                 </app>
             </xpath>

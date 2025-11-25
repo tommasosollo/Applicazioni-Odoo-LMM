@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ai_assistant_model_selection_admin,ai.assistant.model.selection admin,model_ai_assistant_model_selection,base.group_system,1,1,1,1
-access_ai_assistant_model_selection_user,ai.assistant.model.selection user,model_ai_assistant_model_selection,base.group_user,1,0,0,0

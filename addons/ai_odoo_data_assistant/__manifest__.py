@@ -6,11 +6,9 @@
     "license": "LGPL-3",
     "website": "https://example.com",
     "category": "Productivity/AI",
-    "depends": ["base"],
+    "depends": ["base", "sale", "purchase", "account", "product"],
     "data": [
-        "security/ir.model.access.csv",
         "views/res_config_settings.xml",
-        "views/ai_assistant_model_selection_views.xml",
         "wizard/wizard_duplicate_checker.xml",
         "data/cron.xml",
         "views/menu.xml",

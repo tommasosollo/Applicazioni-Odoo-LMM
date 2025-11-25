@@ -17,10 +17,5 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="ai_data_assistant.redundancy_level",
     )
 
-    ai_models_to_check_ids = fields.One2many(
-        'ai.assistant.model.selection',
-        'company_id',
-        string='Models to check',
-    )
 
 

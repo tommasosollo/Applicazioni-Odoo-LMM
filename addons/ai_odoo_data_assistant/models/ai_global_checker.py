@@ -20,13 +20,15 @@ class AIGlobalChecker(models.AbstractModel):
             record._trigger_ai_cleaner(vals)
         return res
 
-    def _trigger_ai_cleaner(self, values):
-        # Recupera modelli configurati da interfaccia
-        models_selected = self.env["ai.assistant.model.selection"].sudo().search([])
-        models_to_check = [m.model_id.model for m in models_selected]
-
-        # Se il modello non è selezionato, ignora
-        if self._name not in models_to_check:
+    def _trigger_ai_cleaner(self, values):      
+        allowed_models = [
+            "res.partner",
+            "product.product",
+            "sale.order",
+            "purchase.order",
+            "account.move",
+        ]
+        if self._name not in allowed_models:
             return
 
         cleaner = self.env["ai.data.cleaner"]
