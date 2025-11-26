@@ -4,36 +4,37 @@ Documenti per chi vuole modificare, estendere o debuggare il modulo Ovunque.
 
 ## Setup Locale
 
-### Prerequisites
-```bash
-Python 3.10+
-Odoo 19.0
-Docker & Docker Compose
-OpenAI API key
-```
+### Prerequisiti
+- Python 3.10+
+- Odoo 19.0
+- OpenAI API key
 
 ### Installazione Dev Environment
 
 ```bash
-cd ai-odoo-data-assistant
-docker-compose up -d
-```
+# 1. Copia il modulo nella directory addons di Odoo
+cp -r addons/ovunque /path/to/your/odoo/addons/
 
-Accedi a http://localhost:8069 con:
-- **Username**: admin
-- **Password**: admin
+# 2. Installa le dipendenze
+pip install -r addons/ovunque/requirements.txt
+
+# 3. Riavvia Odoo (in modalità dev)
+./odoo-bin -c odoo.conf -d database_name -u ovunque
+```
 
 ### Reinstallare il modulo in dev
 
 Quando modifichi i file:
 
 ```bash
-# Riavvia Odoo
-docker-compose restart odoo
+# Upgrade modulo (ricarica il codice)
+./odoo-bin -c odoo.conf -d database_name -u ovunque
 
-# O reinizializza il database
-docker-compose down -v
-docker-compose up -d
+# O reinstalla completamente
+./odoo-bin -c odoo.conf -d database_name --uninstall ovunque -u ovunque
+
+# Per sviluppo interattivo con hot reload:
+./odoo-bin -c odoo.conf -d database_name -u ovunque --dev=all
 ```
 
 ## Struttura del Modulo
@@ -44,19 +45,22 @@ ovunque/
 ├── __init__.py                        # Import models/controllers
 ├── models/
 │   ├── __init__.py
-│   └── search_query.py               # Logica principale
+│   └── search_query.py               # Model SearchQuery e SearchResult
 ├── controllers/
 │   ├── __init__.py
-│   └── search_controller.py          # REST API
+│   └── search_controller.py          # REST API endpoints
 ├── views/
-│   ├── search_query_views.xml        # UI Model SearchQuery
+│   ├── search_query_views.xml        # UI model e form
 │   └── menu.xml                      # Menu Odoo
 ├── security/
-│   └── ir.model.access.csv           # Permessi
-├── static/src/
-│   ├── js/search_bar.js              # Frontend widget
-│   └── xml/search_template.xml       # Template HTML
+│   └── ir.model.access.csv           # Permessi accesso
+├── requirements.txt                   # Dipendenze Python (openai)
+├── utils.py                           # Funzioni utilità helper
+├── tests.py                           # Test unitari
+├── config_example.py                  # Script di configurazione
+├── .env.example                       # Template variabili ambiente
 ├── README.md                          # Documentazione utenti
+├── QUICKSTART.md                      # Guida veloce setup
 └── DEVELOPMENT.md                     # Questo file
 ```
 
@@ -78,14 +82,6 @@ Metadati e configurazione del modulo:
         'views/search_query_views.xml',   # Viste
         'views/menu.xml',                 # Menu
     ],
-    'assets': {
-        'web.assets_backend': [
-            'ovunque/static/src/js/search_bar.js',  # JS backend
-        ],
-        'web.assets_qweb': [
-            'ovunque/static/src/xml/search_template.xml',  # Template
-        ],
-    },
 }
 ```
 
@@ -328,12 +324,151 @@ Colonne:
 - `group_id:id`: Gruppo (users, managers)
 - `perm_read/write/create/unlink`: 1=permesso, 0=negato
 
+### `requirements.txt`
+
+Dipendenze Python del modulo:
+
+```
+openai>=1.0.0
+```
+
+Installa con:
+```bash
+pip install -r addons/ovunque/requirements.txt
+```
+
+Oppure nel virtual environment di Odoo:
+```bash
+source /path/to/odoo/venv/bin/activate
+pip install -r addons/ovunque/requirements.txt
+```
+
+### `.env.example`
+
+Template per variabili d'ambiente:
+
+```env
+OPENAI_API_KEY=sk-your-key-here
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Come usare:
+```bash
+# 1. Copia il file
+cp addons/ovunque/.env.example .env
+
+# 2. Modifica con i tuoi valori
+# OPENAI_API_KEY=sk-your-actual-key
+
+# 3. Carica le variabili
+source .env
+# Oppure esporta singolarmente
+export OPENAI_API_KEY=sk-your-key
+```
+
+Nel `config_example.py` le variabili vengono lette da `.env` automaticamente.
+
+### `utils.py`
+
+Funzioni utilità helper per il modulo:
+
+#### `setup_api_key(env, api_key)`
+Configura la chiave API di OpenAI in Odoo:
+```python
+from ovunque.utils import setup_api_key
+setup_api_key(self.env, 'sk-...')
+```
+
+#### `get_model_fields_for_llm(env, model_name, limit=30)`
+Recupera i campi di un modello formattati per LLM:
+```python
+from ovunque.utils import get_model_fields_for_llm
+fields_info = get_model_fields_for_llm(self.env, 'res.partner', limit=30)
+# Ritorna stringa formattata:
+# - name (char): Name
+# - email (email): Email Address
+# ...
+```
+
+#### `validate_domain(domain)`
+Valida che un dominio sia corretto:
+```python
+from ovunque.utils import validate_domain
+assert validate_domain([('name', 'ilike', 'test')])  # True
+assert not validate_domain([('name', 'test')])       # False
+```
+
+#### `parse_search_results(records, max_results=50)`
+Converte resultset a lista di dict:
+```python
+results = get_model_fields_for_llm(records, max_results=50)
+# Ritorna: [{'id': 1, 'display_name': 'John Doe'}, ...]
+```
+
+#### `common_search_patterns()`
+Ritorna esempi di query per ogni modello:
+```python
+patterns = common_search_patterns()
+# patterns['account.move'] = ["Unpaid invoices from this month", ...]
+```
+
+### `config_example.py`
+
+Script per configurare il modulo automaticamente:
+
+Uso:
+```bash
+# Via Python script
+python addons/ovunque/config_example.py
+
+# Oppure leggi la env var OPENAI_API_KEY da .env
+```
+
+Il file configura automaticamente:
+1. Legge `OPENAI_API_KEY` da variabile d'ambiente
+2. Configura il parametro `ovunque.openai_api_key` in Odoo
+3. Stampa conferma di successo
+
+### `tests.py`
+
+Test unitari per il modulo. Include test per:
+
+**TestOvunqueSearchQuery**:
+- `test_create_search_query()`: Crea query di ricerca
+- `test_search_query_required_fields()`: Valida campi required
+- `test_search_query_defaults()`: Testa valori di default
+- `test_domain_parsing()`: Testa parsing di domini
+- `test_invalid_model_name()`: Testa gestione modelli non validi
+
+**TestOvunqueControllers**:
+- `test_models_endpoint()`: Testa endpoint /ovunque/models
+
+**TestOvunqueUtils**:
+- `test_validate_domain()`: Valida dominio checker
+- `test_common_search_patterns()`: Testa libreria pattern
+
+Esegui i test:
+```bash
+# Via Odoo test runner
+./odoo-bin -c odoo.conf -d database_name -u ovunque --test-enable
+
+# Oppure via pytest
+python -m pytest addons/ovunque/tests.py -v
+
+# Con coverage
+python -m pytest addons/ovunque/tests.py --cov=ovunque --cov-report=html
+```
+
 ## Debugging
 
-### Visualizzare i log del container
+### Visualizzare i log di Odoo
 
 ```bash
-docker logs odoo-ai-19 -f --tail 50
+# Se Odoo è in esecuzione in foreground
+tail -f /var/log/odoo/odoo.log
+
+# Oppure con systemctl
+journalctl -u odoo -f --tail 50
 ```
 
 ### Log message nel codice
@@ -348,27 +483,36 @@ _logger.error(f"Error: {e}")
 _logger.warning("Attenzione!")
 ```
 
-### Testare via shell
+### Testare via Python shell
 
 ```bash
-docker exec -it odoo-ai-19 python
+# Da un terminale separato, con Odoo in esecuzione
+./odoo-bin -c odoo.conf -d database_name --shell
 
-# Dentro il container Python:
-import odoo
-from odoo.api import Environment
-from odoo import sql_db
+# Dentro la shell Python (sostituisci con i tuoi valori):
+>>> from odoo.api import Environment
 
-cr = sql_db.acquire_connection('odoo')
-env = Environment(cr, 2, {})
+>>> SearchQuery = env['search.query']
+>>> query = SearchQuery.create({
+...     'name': 'test query',
+...     'model_name': 'res.partner',
+... })
+>>> query.action_execute_search()
+>>> print(query.model_domain)
+>>> print(query.results_count)
+```
 
-# Test query
-SearchQuery = env['search.query']
-query = SearchQuery.create({
-    'name': 'test query',
-    'model_name': 'res.partner',
-})
-query.action_execute_search()
-print(query.model_domain)
+### Abilitare il debugger
+
+```bash
+# Avvia Odoo in modalità debug
+./odoo-bin -c odoo.conf -d database_name --dev=pdb
+
+# Nel codice, aggiungi un breakpoint:
+import pdb; pdb.set_trace()
+
+# Oppure usa breakpoint() (Python 3.7+)
+breakpoint()
 ```
 
 ## Estensioni Comuni
@@ -455,36 +599,54 @@ def action_export_csv(self):
 
 ## Testing
 
-### Unit Test Esempio
+Il modulo include test unitari completi in `tests.py`. Per aggiungere un nuovo test:
+
+### Struttura di un Test
 
 ```python
 from odoo.tests.common import TransactionCase
 
-class TestSearchQuery(TransactionCase):
-    def test_create_query(self):
-        query = self.env['search.query'].create({
+@tagged('post_install', '-at_install')
+class TestMyFeature(TransactionCase):
+    def setUp(self):
+        super().setUp()
+        self.SearchQuery = self.env['search.query']
+    
+    def test_my_feature(self):
+        """Test description"""
+        query = self.SearchQuery.create({
             'name': 'Test query',
             'model_name': 'res.partner',
         })
         self.assertEqual(query.status, 'draft')
-        self.assertFalse(query.result_ids)
-    
-    def test_parse_domain_response(self):
-        query = self.env['search.query'].create({
-            'name': 'Test',
-            'model_name': 'res.partner',
-        })
-        
-        # Test parsing
-        response = "[('active', '=', True)]"
-        domain = query._parse_domain_response(response)
-        self.assertEqual(domain, [('active', '=', True)])
 ```
 
-Esegui test:
+### Eseguire i Test
+
 ```bash
-docker exec odoo-ai-19 python -m pytest addons/ovunque/tests.py -v
+# Tutti i test del modulo
+./odoo-bin -c odoo.conf -d database_name -u ovunque --test-enable
+
+# Oppure via pytest (se disponibile)
+python -m pytest addons/ovunque/tests.py -v
+
+# Test specifico
+python -m pytest addons/ovunque/tests.py::TestOvunqueSearchQuery::test_create_search_query -v
+
+# Con coverage
+python -m pytest addons/ovunque/tests.py --cov=ovunque --cov-report=html
 ```
+
+### Test Coverage
+
+I test attuali coprono:
+- ✅ Creazione di search query
+- ✅ Validazione campi required
+- ✅ Valori di default
+- ✅ Parsing dominio
+- ✅ Gestione modelli non validi
+- ✅ Endpoints API
+- ✅ Funzioni utilità
 
 ## Performance Tips
 
@@ -498,20 +660,31 @@ docker exec odoo-ai-19 python -m pytest addons/ovunque/tests.py -v
 ### "ImportError: No module named openai"
 
 ```bash
-docker exec odoo-ai-19 pip install --break-system-packages openai
-docker-compose restart odoo
+# Installa la libreria
+pip install openai>=1.0.0
+
+# Oppure nel virtual environment di Odoo
+source /path/to/odoo/venv/bin/activate
+pip install -r addons/ovunque/requirements.txt
+
+# Riavvia Odoo
+./odoo-bin -c odoo.conf -d database_name -u ovunque
 ```
 
-### "Model is not installed"
+### "Module not found" o "Model is not installed"
 
 Reinstalla il modulo:
-```
-Odoo Web UI → Apps → Ovunque → Upgrade
+```bash
+# Via CLI
+./odoo-bin -c odoo.conf -d database_name --uninstall ovunque -u ovunque
+
+# Oppure via Web UI
+Ovunque → App Library → Ovunque → Install/Upgrade
 ```
 
 ### GPT-4 ritorna dominio vuoto `[]`
 
-Aumenta il `max_tokens` o aggiungi più context al prompt:
+Aumenta il `max_tokens` o aggiungi più context al prompt in `models/search_query.py`:
 ```python
 response = client.chat.completions.create(
     model="gpt-4",
@@ -526,6 +699,22 @@ Aumenta il timeout di Odoo in `odoo.conf`:
 ```ini
 [options]
 http_request_timeout = 120  # secondi
+```
+
+### Errore: "API key not configured"
+
+Verifica che la chiave sia stata salvata:
+```bash
+# Via shell Odoo
+./odoo-bin -c odoo.conf -d database_name --shell
+
+# Dentro la shell:
+>>> env['ir.config_parameter'].sudo().get_param('ovunque.openai_api_key')
+```
+
+Se vuoto, configura:
+```python
+env['ir.config_parameter'].sudo().set_param('ovunque.openai_api_key', 'sk-your-key')
 ```
 
 ## Checklist per PR
