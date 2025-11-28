@@ -107,24 +107,31 @@ ai-odoo-data-assistant/
 |---------|-------------|
 | `res.partner` | Contatti/Clienti/Fornitori |
 | `account.move` | Fatture |
-| `product.product` | Prodotti |
+| `product.template` | Prodotti (prezzi, costi, categorie) |
+| `product.product` | Varianti prodotto (SKU specifici) |
 | `sale.order` | Ordini di vendita |
 | `purchase.order` | Ordini di acquisto |
 | `stock.move` | Movimenti magazzino |
 | `crm.lead` | Lead CRM |
 | `project.task` | Task progetto |
 
+**Nota**: Per ricerche su prezzo, usare `product.template`. Per ricerche su varianti specifiche, usare `product.product`.
+
 ## Esempi di Query
 
-### Partner/Contatti
+### Clienti/Contatti
 - "Fornitori che ho contattato nell'ultimo anno"
+- "Clienti attivi"
 
 ### Fatture
 - "Fatture da piu di 1000 euro"
 - "Fatture di Rossi del 2024"
 
-### Prodotti
+### Prodotti 
 - "Articoli con prezzo tra 10 e 100 euro"
+- "Prodotti attivi"
+- "Prodotti con costo superiore a 50"
+- "Varianti con codice interno SKU123"
 
 ### Ordini
 - "Ordini della scorsa settimana"
