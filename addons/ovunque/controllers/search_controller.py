@@ -7,10 +7,41 @@ _logger = logging.getLogger(__name__)
 
 
 class SearchController(http.Controller):
+    """
+    REST API Controller for Ovunque natural language search module.
+    
+    Provides JSON-RPC endpoints for:
+    1. Executing natural language searches
+    2. Retrieving available models and categories
+    3. Debugging field information for models
+    """
     
     @http.route('/ovunque/search', type='jsonrpc', auth='user', methods=['POST'])
     def natural_language_search(self, **kwargs):
-        """API endpoint for natural language search"""
+        """
+        Main API endpoint for natural language search.
+        
+        Process:
+        1. Extract query text and category from request
+        2. Create a new SearchQuery record
+        3. Execute the search (which calls action_execute_search)
+        4. Return results with domain and metadata
+        
+        Request parameters:
+            query (str): Natural language search query
+            category (str): Category code (customers, products, etc.) OR
+            model (str): Specific model name (if category not provided)
+        
+        Response:
+            {
+                "success": bool,
+                "results": list of {id, display_name},
+                "count": number,
+                "domain": generated Odoo domain as string,
+                "query_id": ID of created search.query record,
+                "error": error message if success=false
+            }
+        """
         try:
             query_text = kwargs.get('query')
             category = kwargs.get('category')
@@ -76,7 +107,25 @@ class SearchController(http.Controller):
 
     @http.route('/ovunque/models', type='jsonrpc', auth='user')
     def get_available_models(self, **kwargs):
-        """Get list of available categories and models for search"""
+        """
+        API endpoint to list all available categories and models.
+        
+        Used by the frontend to populate dropdown menus and show users
+        what categories and models they can search on.
+        
+        Response:
+            {
+                "success": bool,
+                "categories": [
+                    {"code": "customers", "label": "Clienti / Contatti"},
+                    ...
+                ],
+                "models": [
+                    {"name": "res.partner", "label": "Partner / Contact"},
+                    ...
+                ]
+            }
+        """
         try:
             SearchQuery = request.env['search.query']
             categories = []
@@ -108,7 +157,28 @@ class SearchController(http.Controller):
 
     @http.route('/ovunque/debug-fields', type='http', auth='user')
     def debug_model_fields(self, **kwargs):
-        """Debug endpoint: List all stored fields for a model"""
+        """
+        Debug endpoint for developers/admins to inspect model fields.
+        
+        Returns an HTML page showing:
+        - All STORED fields (can be used in queries) - green background
+        - All COMPUTED fields (cannot be used) - orange background
+        
+        Usage:
+            Visit http://localhost:8069/ovunque/debug-fields?model=res.partner
+            or http://localhost:8069/ovunque/debug-fields?model=product.template
+        
+        This is useful when:
+        - The LLM generates invalid field names
+        - You need to understand which fields are available for a specific model
+        - You're debugging a query that should work but doesn't
+        
+        Query parameters:
+            model (str): Full model name (e.g., "res.partner", "account.move")
+        
+        Returns:
+            HTML page with styled table of fields
+        """
         try:
             model_name = kwargs.get('model')
             

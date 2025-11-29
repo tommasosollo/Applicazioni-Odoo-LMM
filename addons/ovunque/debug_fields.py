@@ -1,13 +1,31 @@
 """
 Debug script to list all stored fields for each available model.
+
+This script is designed to be executed from the Odoo shell and provides
+developers/admins with a comprehensive view of which fields are stored
+(can be used in queries) vs computed (cannot be used).
+
 Usage in Odoo shell:
-    exec(open('/path/to/debug_fields.py').read())
+    ./odoo-bin shell
+    exec(open('/path/to/addons/ovunque/debug_fields.py').read())
+
+Output:
+    Displays a formatted table for each model showing:
+    - All stored fields with their type and label
+    - Count of stored fields
+    - Notes about how to use Many2one and numeric fields in queries
+
+This is useful for:
+- Diagnosing why LLM generates invalid field names
+- Understanding model structure
+- Building custom search queries
 """
 
 import logging
 
 _logger = logging.getLogger(__name__)
 
+# All models supported by Ovunque that can be debugged
 AVAILABLE_MODELS = [
     'res.partner',
     'account.move',

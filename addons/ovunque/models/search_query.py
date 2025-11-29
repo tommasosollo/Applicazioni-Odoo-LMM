@@ -12,10 +12,27 @@ except ImportError:
 
 
 class SearchQuery(models.Model):
+    """
+    Natural Language Search Query Model
+    
+    This model represents a single user query written in natural language.
+    The model:
+    1. Accepts user input in Italian/English (e.g., "unpaid invoices")
+    2. Uses OpenAI GPT-4 to convert the query to an Odoo domain
+    3. Executes the domain search on the selected model
+    4. Stores results for user review
+    
+    Key Methods:
+    - action_execute_search(): Main entry point for processing queries
+    - _parse_natural_language(): Communicates with OpenAI API
+    - _build_prompt(): Constructs detailed prompt with model information
+    - _parse_domain_response(): Extracts and validates the domain from LLM response
+    """
     _name = 'search.query'
     _description = 'Natural Language Search Query'
     _order = 'create_date desc'
 
+    # List of all Odoo models that can be searched through this interface
     AVAILABLE_MODELS = [
         ('res.partner', 'Partner / Contact'),
         ('account.move', 'Invoice'),
@@ -28,6 +45,8 @@ class SearchQuery(models.Model):
         ('project.task', 'Project Task'),
     ]
     
+    # Maps user-friendly categories to their corresponding Odoo models
+    # This allows users to select "Clienti" and the system auto-selects res.partner
     CATEGORY_MODELS = {
         'customers': ['res.partner'],
         'suppliers': ['res.partner'],
@@ -46,7 +65,11 @@ class SearchQuery(models.Model):
         'projects': ['project.task'],
     }
 
+    # The natural language query text entered by the user (e.g., "unpaid invoices over 1000")
     name = fields.Char('Query Text', required=True)
+    
+    # User-friendly category selection (Clienti, Prodotti, etc.)
+    # Based on this, the system auto-selects the appropriate Odoo model from CATEGORY_MODELS
     category = fields.Selection([
         ('customers', 'Clienti / Contatti'),
         ('products', 'Prodotti'),
@@ -55,21 +78,52 @@ class SearchQuery(models.Model):
         ('crm', 'CRM / Opportunità'),
         ('tasks', 'Task Progetto'),
     ], 'Categoria', required=True, default='customers')
+    
+    # Specific Odoo model selected after category is processed (res.partner, account.move, etc.)
+    # Set automatically by action_execute_search() based on the category
     model_name = fields.Selection(AVAILABLE_MODELS, 'Modello Specifico', readonly=True)
+    
+    # Generated Odoo domain as a string (e.g., "[('state', '=', 'draft')]")
+    # Produced by GPT-4 and stored for debugging/auditing purposes
     model_domain = fields.Text('Generated Domain')
+    
+    # Count of results returned by the search query
     results_count = fields.Integer('Results Count')
+    
+    # Raw response text from OpenAI API (stored for debugging)
+    # Helpful for troubleshooting when the LLM doesn't generate valid domains
     raw_response = fields.Text('Raw LLM Response')
+    
+    # One2many relationship to SearchResult records
+    # Contains all the records found by the search domain
     result_ids = fields.One2many('search.result', 'query_id', 'Results')
+    
+    # Status of the query: 'draft' = initial, 'success' = completed, 'error' = failed
     status = fields.Selection([
         ('draft', 'Draft'),
         ('success', 'Success'),
         ('error', 'Error'),
     ], default='draft')
+    
+    # Error message in case of failures (API key missing, invalid domain, etc.)
     error_message = fields.Text('Error Message')
+    
+    # Reference to the user who created this query
     created_by_user = fields.Many2one('res.users', 'Created By', default=lambda self: self.env.user)
 
     def action_execute_search(self):
-        """Execute the natural language search"""
+        """
+        Main execution method for natural language search.
+        
+        Flow:
+        1. Delete any previous results for this query
+        2. Validate that a category was selected
+        3. Select the appropriate Odoo model based on category
+        4. Parse natural language to Odoo domain using LLM
+        5. Execute the domain search
+        6. Store results in search.result records
+        7. Update status (success/error) and error messages
+        """
         for record in self:
             try:
                 record.result_ids.unlink()
@@ -127,7 +181,24 @@ class SearchQuery(models.Model):
                 _logger.error(f"Error executing search: {e}")
 
     def _parse_natural_language(self):
-        """Convert natural language to Odoo domain using LLM"""
+        """
+        Convert natural language query to Odoo domain using OpenAI GPT-4.
+        
+        Process:
+        1. Retrieve OpenAI API key from Odoo configuration
+        2. Get all stored fields for the selected model
+        3. Build a detailed prompt with field information and examples
+        4. Send prompt to GPT-4 API with system message about domain generation
+        5. Parse the response to extract the domain list
+        6. Validate the domain against the model's fields
+        7. Return the parsed domain for database search
+        
+        Returns:
+            list: Odoo domain (list of tuples) to be used in Model.search()
+            
+        Raises:
+            UserError: If API key missing, model not installed, parsing fails, etc.
+        """
         api_key = self.env['ir.config_parameter'].sudo().get_param('ovunque.openai_api_key')
         
         if not api_key:
@@ -207,7 +278,23 @@ class SearchQuery(models.Model):
                 raise UserError(_('Error communicating with OpenAI: %s\n\nPlease check Settings → Ovunque → API Settings.') % str(e)[:100])
 
     def _build_prompt(self, model_fields):
-        """Build the prompt for LLM with available fields"""
+        """
+        Build a detailed prompt for GPT-4 that includes:
+        - Model information and description
+        - All available database fields (stored only, no computed fields)
+        - Examples specific to this model type
+        - Clear rules for domain generation
+        - The user's natural language query
+        
+        The prompt is designed to minimize hallucination and encourage
+        GPT-4 to generate valid Odoo domains.
+        
+        Args:
+            model_fields: Dictionary of fields from Model.fields_get()
+            
+        Returns:
+            str: Complete prompt ready for GPT-4 API call
+        """
         fields_info = self._get_field_info(model_fields)
         model_examples = self._get_model_examples()
         
@@ -250,7 +337,21 @@ Response (ONLY the list, nothing else):"""
         return prompt
 
     def _get_field_info(self, model_fields):
-        """Extract and format field information for LLM - ONLY stored fields"""
+        """
+        Extract stored (non-computed) fields from the model and format them for LLM.
+        
+        This method filters out:
+        - Private fields (starting with _)
+        - Computed fields (store=False)
+        
+        These restrictions ensure GPT-4 only sees fields that can be used in domain queries.
+        
+        Args:
+            model_fields: Dictionary from Model.fields_get()
+            
+        Returns:
+            str: Formatted field list, max 50 fields (first 50 chars per line)
+        """
         fields_info = []
         for field_name, field_data in model_fields.items():
             if field_name.startswith('_'):
@@ -267,7 +368,15 @@ Response (ONLY the list, nothing else):"""
         return "\n".join(fields_info[:50])
     
     def _get_model_description(self):
-        """Get human-readable description of the model"""
+        """
+        Get a human-readable English description of what each model represents.
+        
+        These descriptions are included in the LLM prompt to give GPT-4 context
+        about the model structure and purpose.
+        
+        Returns:
+            str: Description of the model (e.g., "Contacts, Customers, Suppliers, Companies")
+        """
         descriptions = {
             'res.partner': 'Contacts, Customers, Suppliers, Companies',
             'account.move': 'Invoices and Bills (posted documents)',
@@ -282,7 +391,19 @@ Response (ONLY the list, nothing else):"""
         return descriptions.get(self.model_name, self.model_name)
     
     def _get_model_examples(self):
-        """Get model-specific query examples"""
+        """
+        Provide model-specific examples in the LLM prompt.
+        
+        Each model has its own set of real-world query examples that show GPT-4:
+        - What queries are typical for this model
+        - How natural language maps to domain syntax
+        - Special cases (e.g., price vs cost for products)
+        
+        These examples significantly improve the accuracy of generated domains.
+        
+        Returns:
+            str: Formatted examples for the current model
+        """
         examples = {
             'res.partner': """
 - "Customers from Milan" → [('city', 'ilike', 'Milan'), ('customer_rank', '>', 0)]
@@ -336,7 +457,26 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
         return examples.get(self.model_name, "No specific examples available")
 
     def _parse_domain_response(self, response_text):
-        """Parse the LLM response and validate it"""
+        """
+        Extract and validate the Odoo domain from GPT-4 response.
+        
+        Process:
+        1. Remove markdown formatting (```, code fences)
+        2. Extract the list using regex
+        3. Parse using ast.literal_eval (safe)
+        4. If parsing fails, attempt repair with fallback strategies
+        5. Fix price field issues automatically
+        6. Validate all fields exist in the model
+        
+        Args:
+            response_text: Raw text response from GPT-4 API
+            
+        Returns:
+            list: Parsed and validated Odoo domain
+            
+        Raises:
+            UserError: If domain cannot be parsed or validated
+        """
         import re
         import ast
         try:
@@ -387,7 +527,21 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
             ) % str(e)[:80])
     
     def _validate_domain_fields(self, domain):
-        """Validate that all fields in domain exist and are stored in the model"""
+        """
+        Validate that all fields referenced in the domain exist and are stored (not computed).
+        
+        This prevents errors like:
+        - Using a field that doesn't exist: Field "typo_name" does not exist
+        - Using a computed field: Field "lst_price" is computed (not in database)
+        
+        For dot-notation fields (e.g., 'partner_id.name'), only checks the base field.
+        
+        Args:
+            domain: List of tuples representing the Odoo domain
+            
+        Raises:
+            UserError: If any field is invalid or computed
+        """
         if not domain:
             return
         
@@ -428,7 +582,27 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
             _logger.warning(f"[VALIDATE] Field '{base_field}' is valid and stored")
     
     def _fix_price_fields(self, domain):
-        """Auto-fix LLM mistakes with price fields"""
+        """
+        Auto-fix common LLM mistakes with price field confusion.
+        
+        Common mistakes GPT-4 makes:
+        1. Using 'standard_price' (internal cost) when user asks for "price" (selling price)
+        2. Trying to use 'list_price' on product.product (prices are on product.template)
+        
+        This method intelligently detects these mistakes by analyzing:
+        - Keywords in the user's query (prezzo, price, euro, cost, etc.)
+        - The model being searched
+        - The field being used
+        
+        Args:
+            domain: List of tuples to fix
+            
+        Returns:
+            list: Fixed domain with corrected price field references
+            
+        Raises:
+            UserError: If price query on product.product (wrong model)
+        """
         if not domain or self.model_name not in ('product.template', 'product.product'):
             return domain
         
@@ -463,7 +637,15 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
         return domain
     
     def _get_available_stored_fields(self):
-        """Get comma-separated list of available stored fields"""
+        """
+        Get a list of stored field names from the model for error messages.
+        
+        Used when displaying which fields are available to the user if they
+        get an error about an invalid field name.
+        
+        Returns:
+            str: Comma-separated list of up to 20 stored field names
+        """
         Model = self.env[self.model_name]
         model_fields = Model.fields_get()
         
@@ -477,7 +659,25 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
         return ', '.join(sorted(stored)[:20])
     
     def _attempt_domain_repair(self, domain_str):
-        """Attempt to repair common LLM syntax errors"""
+        """
+        Attempt to fix common syntax errors in LLM-generated domain strings.
+        
+        Sometimes GPT-4 produces nearly-valid Python syntax with small issues:
+        - Mixed quote styles ('\"text\")
+        - Malformed boolean/None values
+        
+        This method tries:
+        1. Common string replacements (quote fixes, boolean/None normalization)
+        2. ast.literal_eval (safe, no code execution)
+        3. eval as last resort (if literal_eval fails)
+        4. Return empty domain [] if all repairs fail
+        
+        Args:
+            domain_str: String that should be a Python list but has syntax errors
+            
+        Returns:
+            list: Repaired domain, or [] if cannot be fixed
+        """
         import ast
         repairs = [
             (r"'\"", "'"),
@@ -501,11 +701,33 @@ KEY RULE: If user specifically mentions "internal cost", "costo interno", "our c
 
 
 class SearchResult(models.Model):
+    """
+    Search Query Result Model
+    
+    Represents a single result record returned by a natural language search.
+    
+    This model serves as a Many2one target for SearchQuery, allowing:
+    - Easy access to results from the UI
+    - Audit trail of what records were found
+    - Support for large result sets (up to 50 results per query)
+    
+    Fields store the original record ID, display name, and model for reference,
+    since we don't want to create foreign key constraints to arbitrary models.
+    """
     _name = 'search.result'
     _description = 'Search Query Result'
     _order = 'id desc'
 
+    # Many2one reference back to the SearchQuery that produced this result
+    # Cascade delete ensures results are cleaned up when query is deleted
     query_id = fields.Many2one('search.query', 'Query', ondelete='cascade', required=True)
+    
+    # Integer ID of the found record (not a foreign key, can reference any model)
     record_id = fields.Integer('Record ID', required=True)
+    
+    # Display name of the found record (e.g., "Invoice INV/2025/001")
     record_name = fields.Char('Record Name', required=True)
+    
+    # Model name of the found record (e.g., "account.move", "res.partner")
+    # Stored as string so we can reference any model type
     model = fields.Char('Model', required=True)
