@@ -1,3 +1,15 @@
+"""
+Website Controller for SEO AI Module
+
+Provides REST API endpoints for:
+- SERP (Search Engine Results Page) preview generation
+- Batch operations on multiple products
+- Generation history retrieval
+- Module configuration
+
+All endpoints require user authentication and appropriate permissions.
+"""
+
 import logging
 import json
 from odoo import http, _
@@ -7,6 +19,13 @@ _logger = logging.getLogger(__name__)
 
 
 class SEOAIWebsiteController(http.Controller):
+    """
+    Website Controller - REST API endpoints for SEO AI operations.
+    
+    Handles frontend requests for batch generation, history, and configuration.
+    Requires user group 'ecommerce_seo_translator_pro.group_ecommerce_seo_ai'
+    for most operations.
+    """
 
     @http.route(
         '/seo-ai/meta-preview',
@@ -18,11 +37,21 @@ class SEOAIWebsiteController(http.Controller):
         """
         Get SERP preview (search engine results page snippet).
 
+        Returns formatted preview as it would appear in Google search results,
+        including title, URL, description, and keywords.
+
         Args:
             product_id: product.template ID
 
         Returns:
-            JSON with meta-tag preview
+            JSON dict with:
+                - success: bool
+                - title: Meta title or product name
+                - url: Product URL
+                - description: Meta description
+                - keywords: Meta keywords
+                - last_generated: ISO timestamp of last generation
+                - error: Error message if failed
         """
         try:
             product = request.env['product.template'].browse(product_id)
@@ -59,14 +88,21 @@ class SEOAIWebsiteController(http.Controller):
     )
     def batch_generate_descriptions(self, product_ids: list, action: str = 'description') -> dict:
         """
-        Generate descriptions/meta-tags for multiple products.
+        Generate descriptions/meta-tags for multiple products in batch.
+
+        Requires 'ecommerce_seo_translator_pro.group_ecommerce_seo_ai' permission.
+        Suitable for mass operations on product catalogs.
 
         Args:
-            product_ids: List of product.template IDs
-            action: 'description', 'meta_tags', or 'translate'
+            product_ids: List of product.template IDs to process
+            action: Type of action - 'description', 'meta_tags', or 'translate'
 
         Returns:
-            JSON with batch operation status
+            JSON dict with:
+                - success: bool
+                - message: Status message
+                - count: Number of products processed
+                - error: Error message if failed
         """
         try:
             if not request.env.user.has_group('ecommerce_seo_translator_pro.group_ecommerce_seo_ai'):
@@ -114,12 +150,19 @@ class SEOAIWebsiteController(http.Controller):
         """
         Get generation history for a product.
 
+        Returns recent AI operations performed on a product for auditing
+        and debugging purposes.
+
         Args:
             product_id: product.template ID
-            limit: Maximum records to return
+            limit: Maximum records to return (default 10)
 
         Returns:
-            JSON with history records
+            JSON dict with:
+                - success: bool
+                - history: List of history records with action, status, timestamp
+                - count: Number of records returned
+                - error: Error message if failed
         """
         try:
             history_records = request.env['seo.ai.history'].search(
@@ -162,8 +205,16 @@ class SEOAIWebsiteController(http.Controller):
         """
         Get module configuration (for frontend).
 
+        Returns module settings stored in ir.config_parameter.
+        Requires 'ecommerce_seo_translator_pro.group_ecommerce_seo_ai' permission.
+
         Returns:
-            JSON with configuration
+            JSON dict with:
+                - success: bool
+                - batch_enabled: Whether batch operations are enabled
+                - async_enabled: Whether async operations are enabled
+                - default_tone: Default writing tone for descriptions
+                - error: Error message if failed
         """
         try:
             if not request.env.user.has_group('ecommerce_seo_translator_pro.group_ecommerce_seo_ai'):

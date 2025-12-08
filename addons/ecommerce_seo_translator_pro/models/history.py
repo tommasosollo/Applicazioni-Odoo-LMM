@@ -1,10 +1,34 @@
+"""
+SEO AI History Model - Audit Trail for AI Operations
+
+Records all AI-powered SEO operations for audit, compliance, and analytics:
+- Description generation attempts (success/failure)
+- Translation operations per language
+- Meta-tags generation
+- User actions and timestamps
+- GDPR-compliant input hashing
+
+Automatically tracks:
+- Who performed the action (user_id)
+- When it happened (create_date)
+- What the result was (output)
+- Execution time and estimated API cost
+"""
+
 import logging
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
 
 class SEOAIHistory(models.Model):
+    """
+    SEO AI History Model - Complete audit trail for AI operations.
+    
+    Stores records of all AI-powered content generation and translation.
+    Ordered by creation date (newest first) for easy review.
+    """
 
     _name = 'seo.ai.history'
     _description = 'SEO AI Generation History'
@@ -79,7 +103,11 @@ class SEOAIHistory(models.Model):
         """
         Delete history records.
 
-        Only managers can delete history.
+        Only system managers can delete history records for audit compliance.
+        Regular users cannot delete audit trail records.
+        
+        Raises:
+            UserError: If user is not a system administrator
         """
         if not self.env.user.has_group('base.group_system'):
             raise UserError(_('Only managers can delete history'))
@@ -89,13 +117,20 @@ class SEOAIHistory(models.Model):
     @api.model
     def get_stats_by_product(self, product_id: int) -> dict:
         """
-        Get statistics for a product.
+        Get statistics for a product's AI operations.
+
+        Aggregates all AI operations performed on a product and returns
+        success/failure counts by action type.
 
         Args:
             product_id: Product template ID
 
         Returns:
-            Dict with statistics
+            Dict with:
+                - total_actions: Total number of operations
+                - successful: Count of successful operations
+                - errors: Count of failed operations
+                - by_action: Dict with stats per action type
         """
         records = self.search([
             ('product_id', '=', product_id),
@@ -123,11 +158,17 @@ class SEOAIHistory(models.Model):
         """
         Delete history records older than specified days.
 
+        Scheduled cleanup task to remove old audit records and manage
+        database storage. Can be scheduled as a cron job.
+
         Args:
-            days: Number of days to keep (default 90)
+            days: Number of days to keep in history (default 90)
 
         Returns:
             int: Number of deleted records
+
+        Example:
+            self.env['seo.ai.history'].cleanup_old_records(days=60)
         """
         from datetime import datetime, timedelta
 

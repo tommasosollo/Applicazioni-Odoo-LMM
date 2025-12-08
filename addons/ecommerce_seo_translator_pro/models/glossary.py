@@ -1,3 +1,17 @@
+"""
+SEO AI Glossary Model - Translation Terminology Management
+
+Maintains a controlled vocabulary for product translations to ensure
+consistency of technical terms, brand names, and marketing language
+across all languages.
+
+Features:
+- Per-language term mappings
+- Category-based organization (Product, Technical, Marketing, Brand)
+- Uniqueness constraints to prevent duplicate terms per language
+- Active/Inactive toggle for term lifecycle management
+"""
+
 import logging
 from typing import Dict
 from odoo import models, fields, api, _
@@ -6,6 +20,13 @@ _logger = logging.getLogger(__name__)
 
 
 class SEOAIGlossary(models.Model):
+    """
+    SEO AI Glossary Model - Technical terminology management.
+    
+    Maintains translation glossaries to ensure brand consistency and
+    technical accuracy when translating product descriptions.
+    Ordered by language and term alphabetically.
+    """
 
     _name = 'seo.ai.glossary'
     _description = 'SEO AI Glossary - Technical terms for translation'
@@ -63,11 +84,15 @@ class SEOAIGlossary(models.Model):
         """
         Get glossary dictionary for a specific language.
 
+        Retrieves all active glossary entries for the specified language
+        and returns them as a simple dict for easy lookups during translation.
+
         Args:
-            language_code: Language code (e.g., 'it', 'es')
+            language_code: Language code (e.g., 'it_IT', 'es_ES', 'en_US')
 
         Returns:
-            Dict mapping English terms to translations
+            Dict mapping English terms (keys) to translations (values)
+            Empty dict if no glossary entries exist for that language
         """
         glossary_records = self.search([
             ('language_code', '=', language_code),
@@ -90,8 +115,15 @@ class SEOAIGlossary(models.Model):
         """
         Get all glossaries organized by language.
 
+        Returns nested dictionary for efficient multi-language operations.
+        Useful for bulk translation operations or generating reports.
+
         Returns:
-            Dict mapping language codes to term dictionaries
+            Dict with structure: {
+                'it_IT': {'term1': 'translation1', 'term2': 'translation2'},
+                'es_ES': {'term1': 'traduccion1', ...},
+                ...
+            }
         """
         glossary_records = self.search([('active', '=', True)])
 

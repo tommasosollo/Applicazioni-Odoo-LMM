@@ -236,12 +236,19 @@ GET /seo-ai/history?product_id=123&limit=10
 - Go to product → AI SEO Tools tab
 - Check **Debug Information** field for error messages
 
-### Translation Not Working
+### Translation Not Working (Translate All Button)
 
 **Check:**
-1. Product has translations enabled in Odoo
-2. Active languages are configured
-3. Glossary has entries for target language (optional)
+1. Product has a description or AI-generated description
+2. **At least 2 active languages configured** in Settings → Languages
+3. Click "Translate All" and wait for the operation to complete
+4. Product will be updated with translations in other languages
+5. Switch to the translated language in the product form to verify
+
+**Common Issues:**
+- **"No other active languages available"**: You need at least 2 active languages. Go to Settings → Languages and activate at least one additional language besides your current one.
+- **No visible changes after clicking Translate All**: This is normal - translations are saved to the product record in the target language context. Switch language in the product form to view them.
+- **Glossary has entries for target language (optional)**: The glossary helps preserve brand terms during translation
 
 ### Rate Limit Exceeded
 
@@ -299,6 +306,7 @@ For issues, questions, or feature requests, refer to the main project documentat
 
 ## Version History
 
+- **v19.0.1.1.0** - Fix: Improved "Translate All" error handling and logging, better validation of required languages
 - **v19.0.1.0.0** - Initial release with description, translation, and meta-tag generation
 
 ## License

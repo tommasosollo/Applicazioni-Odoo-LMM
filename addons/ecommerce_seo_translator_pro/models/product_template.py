@@ -121,7 +121,8 @@ class ProductTemplate(models.Model):
         """
         Generate SEO description using AI.
 
-        Called by button in product form.
+        Called by button in product form. Uses GPT-4o-mini to create
+        SEO-optimized descriptions based on product tone and keywords.
         """
         service = self.env['ai.seo.service']
 
@@ -174,75 +175,114 @@ class ProductTemplate(models.Model):
                     'user_id': self.env.user.id,
                 })
 
+                _logger.error('[SEO-AI] Description generation failed for %s: %s', 
+                             product.name, result.get('error', ''))
                 raise UserError(_('Description generation failed: %s') % result.get('error', ''))
 
     def action_translate_descriptions(self):
         """
         Translate descriptions to all active languages.
 
-        Uses glossary if configured.
+        Uses glossary if configured. Translates from current language to all
+        other active languages, preserving brand terms and HTML tags.
         """
         service = self.env['ai.seo.service']
         current_lang = self.env.lang
 
         for product in self:
-            for language in self.env['res.lang'].search([('active', '=', True)]):
-                if language.code == current_lang:
-                    continue
+            text_to_translate = product.ai_generated_description or product.description or ''
+            if not text_to_translate:
+                raise UserError(_('No description to translate. Please generate SEO description first.'))
 
-                text_to_translate = product.description or ''
-                if not text_to_translate:
-                    continue
+            target_languages = self.env['res.lang'].search([
+                ('active', '=', True),
+                ('code', '!=', current_lang)
+            ])
+            
+            if not target_languages:
+                raise UserError(_('No other active languages available for translation.'))
 
-                glossary_dict = self.env['seo.ai.glossary']._get_glossary_for_language(
-                    language.code
+            translated_count = 0
+            failed_langs = []
+
+            for language in target_languages:
+                try:
+                    glossary_dict = self.env['seo.ai.glossary']._get_glossary_for_language(
+                        language.code
+                    )
+
+                    _logger.info(
+                        '[SEO-AI] Translating product %s to %s',
+                        product.name, language.code
+                    )
+
+                    result = service.translate_text(
+                        text=text_to_translate,
+                        source_lang=current_lang,
+                        target_lang=language.code,
+                        glossary=glossary_dict,
+                    )
+
+                    if result['success']:
+                        translation_text = result['translation']
+                        _logger.info('[SEO-AI] Got translation for %s: %s...', 
+                                    language.code, translation_text[:100])
+                        
+                        product.with_context(lang=language.code).write({
+                            'description': translation_text,
+                        })
+                        _logger.info('[SEO-AI] Saved translation for %s (id=%d)', 
+                                    language.code, product.id)
+
+                        self.env['seo.ai.history'].create({
+                            'product_id': product.id,
+                            'action': 'translation',
+                            'status': 'success',
+                            'input_hash': self._hash_input(text_to_translate),
+                            'output': translation_text,
+                            'user_id': self.env.user.id,
+                            'target_language': language.code,
+                        })
+
+                        translated_count += 1
+                        _logger.info('[SEO-AI] Translation successful for %s', language.code)
+
+                    else:
+                        failed_langs.append(f"{language.name}: {result.get('error', 'Unknown error')}")
+                        
+                        self.env['seo.ai.history'].create({
+                            'product_id': product.id,
+                            'action': 'translation',
+                            'status': 'error',
+                            'input_hash': self._hash_input(text_to_translate),
+                            'output': result.get('error', ''),
+                            'user_id': self.env.user.id,
+                            'target_language': language.code,
+                        })
+
+                        _logger.warning('[SEO-AI] Translation failed for %s: %s', language.code, result.get('error', ''))
+
+                except Exception as e:
+                    failed_langs.append(f"{language.name}: {str(e)}")
+                    _logger.exception('[SEO-AI] Exception translating to %s', language.code)
+
+            if failed_langs:
+                error_msg = _('Translated to %d languages, but %d failed:\n%s') % (
+                    translated_count, len(failed_langs), '\n'.join(failed_langs)
                 )
-
-                _logger.info(
-                    '[SEO-AI] Translating product %s to %s',
-                    product.name, language.code
-                )
-
-                result = service.translate_text(
-                    text=text_to_translate,
-                    source_lang=current_lang,
-                    target_lang=language.code,
-                    glossary=glossary_dict,
-                )
-
-                if result['success']:
-                    product.with_context(lang=language.code).write({
-                        'description': result['translation'],
-                    })
-
-                    self.env['seo.ai.history'].create({
-                        'product_id': product.id,
-                        'action': 'translation',
-                        'status': 'success',
-                        'input_hash': self._hash_input(text_to_translate),
-                        'output': result['translation'],
-                        'user_id': self.env.user.id,
-                        'target_language': language.code,
-                    })
-
-                    _logger.info('[SEO-AI] Translation successful for %s', language.code)
-
-                else:
-                    self.env['seo.ai.history'].create({
-                        'product_id': product.id,
-                        'action': 'translation',
-                        'status': 'error',
-                        'input_hash': self._hash_input(text_to_translate),
-                        'output': result.get('error', ''),
-                        'user_id': self.env.user.id,
-                        'target_language': language.code,
-                    })
-
-                    _logger.warning('[SEO-AI] Translation failed for %s', language.code)
+                raise UserError(error_msg)
+            elif translated_count == 0:
+                raise UserError(_('Translation failed for all languages.'))
+            
+            message = _('Successfully translated to %d language(s)') % translated_count
+            _logger.info('[SEO-AI] %s', message)
 
     def action_generate_meta_tags(self):
         """
         Generate SEO meta-tags using AI.
+
+        Generates optimal meta-title (max 60 chars), meta-description (max 160 chars),
+        and keywords for search engine optimization.
         """
         service = self.env['ai.seo.service']
 
@@ -284,17 +324,22 @@ class ProductTemplate(models.Model):
                     'user_id': self.env.user.id,
                 })
 
+                _logger.error('[SEO-AI] Meta-tags generation failed for %s: %s',
+                             product.name, result.get('error', ''))
                 raise UserError(_('Meta-tags generation failed: %s') % result.get('error', ''))
 
     def _hash_input(self, text: str) -> str:
         """
         Hash input for privacy (GDPR compliant).
 
+        Creates SHA256 hash of text for audit trail storage without
+        storing sensitive product information in clear text.
+
         Args:
-            text: Text to hash
+            text: Text to hash (e.g., product name)
 
         Returns:
-            str: SHA256 hash
+            str: SHA256 hash hexdigest (64 chars)
         """
         import hashlib
         return hashlib.sha256(text.encode()).hexdigest()
