@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <!-- 
+      Product Template Form View Extension - AI SEO Tools Tab
+      
+      This view adds a new "AI SEO Tools" tab to the product form that allows users to:
+      - Generate SEO-optimized descriptions using AI
+      - Generate meta-tags (title, description, keywords)
+      - Translate descriptions to multiple languages
+      - View generation history and debug information
+      
+      The tab is inserted into the existing product.template form via inheritance.
+    -->
+    <record id="product_template_form_seo_ai" model="ir.ui.view">
+      <field name="name">product.template.form.seo.ai</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_form_view"/>
+      <field name="arch" type="xml">
+        <xpath expr="//notebook" position="inside">
+          <!-- Main AI SEO Tools Tab -->
+          <page string="AI SEO Tools" name="seo_ai_tools">
+            <group>
+              <!-- Description Generation Section -->
+              <!-- Allows users to configure parameters for generating SEO descriptions -->
+              <group string="Description Generation">
+                <field name="technical_specifications" help="Additional specs for AI to consider"/>
+                <field name="ai_description_tone" help="Writing style: Professional, Casual, or Technical"/>
+                <field name="ai_description_word_count" help="Target word count for description (150-250)"/>
+                <field name="ai_keywords" help="Comma-separated keywords to incorporate"/>
+                <field name="ai_generation_status" readonly="1" help="Current generation status"/>
+                <!-- Button to trigger description generation -->
+                <button name="action_generate_ai_description" string="Generate SEO Description" type="object" class="btn-primary"/>
+              </group>
+              
+              <!-- Generated Content Display Section -->
+              <!-- Shows AI-generated description and timestamp -->
+              <group string="Generated Content">
+                <field name="ai_generated_description" widget="html" readonly="1" help="AI-generated product description"/>
+                <field name="seo_last_generated" readonly="1" help="Date when description was last generated"/>
+              </group>
+            </group>
+            
+            <!-- Meta Tags Section -->
+            <!-- Handles SEO meta-tags generation and multi-language translation -->
+            <group string="Meta Tags">
+              <group>
+                <field name="meta_title" help="Meta title for SEO (max 60 chars)"/>
+                <field name="meta_description" help="Meta description for search engines (max 160 chars)"/>
+                <field name="meta_keywords" help="Comma-separated keywords for SEO"/>
+                <!-- Button to generate meta-tags -->
+                <button name="action_generate_meta_tags" string="Generate Meta-Tags" type="object" class="btn-primary"/>
+              </group>
+              <group>
+                <!-- Button to translate descriptions to all active languages -->
+                <button name="action_translate_descriptions" string="Translate All" type="object" class="btn-info"/>
+              </group>
+            </group>
+            
+            <!-- Debug Information Section -->
+            <!-- Displays logs and error messages for troubleshooting -->
+            <group string="Debug Information">
+              <field name="ai_generation_log" readonly="1" help="Generation logs and error messages"/>
+            </group>
+          </page>
+        </xpath>
+      </field>
+    </record>
+    
+    <!-- 
+      Product Template Search View Extension - AI SEO Filters
+      
+      Adds search filters to the product list view to find:
+      - Products with generated SEO content
+      - Products with generation errors
+      
+      Users can use these filters to quickly identify products that need attention.
+    -->
+    <record id="product_template_search_seo" model="ir.ui.view">
+      <field name="name">product.template.search.seo</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_search_view"/>
+      <field name="arch" type="xml">
+        <!-- Add filters after the standard "To Sell" filter -->
+        <xpath expr="//filter[@name='filter_to_sell']" position="after">
+          <!-- Filter to show only products with generated SEO content -->
+          <filter name="filter_seo_generated" string="SEO Generated" domain="[('ai_generation_status', '=', 'generated')]"/>
+          <!-- Filter to show only products with generation errors -->
+          <filter name="filter_seo_error" string="SEO Errors" domain="[('ai_generation_status', '=', 'error')]"/>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="1">
+    <record id="glossary_product_it_1" model="seo.ai.glossary">
+      <field name="term">product</field>
+      <field name="translation">prodotto</field>
+      <field name="language_code">it</field>
+      <field name="category">product</field>
+      <field name="notes">Basic product term</field>
+    </record>
+    <record id="glossary_product_it_2" model="seo.ai.glossary">
+      <field name="term">warranty</field>
+      <field name="translation">garanzia</field>
+      <field name="language_code">it</field>
+      <field name="category">product</field>
+      <field name="notes">Product warranty</field>
+    </record>
+    <record id="glossary_technical_it_1" model="seo.ai.glossary">
+      <field name="term">specification</field>
+      <field name="translation">specifica</field>
+      <field name="language_code">it</field>
+      <field name="category">technical</field>
+      <field name="notes">Technical specification</field>
+    </record>
+    <record id="glossary_brand_it_1" model="seo.ai.glossary">
+      <field name="term">premium</field>
+      <field name="translation">premium</field>
+      <field name="language_code">it</field>
+      <field name="category">brand</field>
+      <field name="notes">Brand positioning term</field>
+    </record>
+  </data>
+</odoo>

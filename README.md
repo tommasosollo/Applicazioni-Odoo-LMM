@@ -1,4 +1,17 @@
-# Ovunque - Natural Language Search for Odoo
+# AI-Odoo Data Assistant
+
+**Enterprise-grade AI modules for Odoo 19 - Natural Language Search & E-Commerce SEO Optimization**
+
+This repository contains two professional Odoo modules:
+
+1. **Ovunque** - Natural Language Search for Odoo
+2. **E-Commerce SEO Translator Pro** - AI-powered SEO description & translation generation
+
+---
+
+## 📦 Module Overview
+
+### Ovunque - Natural Language Search
 
 **Search your Odoo data using conversational AI. Write queries like you're talking to a human.**
 
@@ -7,11 +20,9 @@ Input:  "Show me all unpaid invoices over 1000 euros from the last 30 days"
 Output: [INV/2025/001, INV/2025/003, INV/2025/005] - Automatically found!
 ```
 
-## What Is This?
-
 **Ovunque** is an Odoo module that converts natural language questions into Odoo database queries using OpenAI's GPT-4 (for simple queries) or pure pattern matching (for complex multi-model queries). No SQL knowledge required. Ask in Italian, English, or a mix—the AI understands.
 
-### Key Features
+#### Key Features
 
 ✅ **Natural Language Processing**: Write queries like "clienti da Milano" instead of technical domain syntax  
 ✅ **Multi-Language**: Works in Italian, English, and can be extended to other languages  
@@ -21,29 +32,81 @@ Output: [INV/2025/001, INV/2025/003, INV/2025/005] - Automatically found!
 ✅ **Debug Tools**: Built-in endpoints to inspect model fields and diagnose issues  
 ✅ **Query Audit Trail**: Every search is stored with its generated domain for transparency  
 
+#### Documentation
+
+- 📖 **Full Guide**: See [`addons/ovunque/README.md`](addons/ovunque/README.md)
+- 🚀 **Installation**: See installation section below
+- 💡 **Query Examples**: See multi-model queries section below
+
 ---
 
-## Installation
+### E-Commerce SEO Translator Pro - AI-Powered SEO Optimization
 
-### Prerequisites
+**Generate SEO-optimized product descriptions, translations, and meta-tags automatically.**
+
+```
+Input:  "Premium coffee maker with dual boiler system"
+Output: ✓ 200-word SEO description
+        ✓ Meta title (60 chars)
+        ✓ Meta description (160 chars)
+        ✓ Keywords + translation to 5 languages
+```
+
+**E-Commerce SEO Translator Pro** is a professional-grade Odoo module that uses GPT-4 to generate compelling, SEO-optimized product descriptions, handle multi-language translations with custom glossary support, and automatically create meta-tags for search engines.
+
+#### Key Features
+
+✅ **AI Description Generation**: Create 150-250 word SEO descriptions with configurable tone  
+✅ **Contextual Translation**: Multi-language support with brand glossary preservation  
+✅ **Meta-Tag Automation**: Generate optimized titles, descriptions, and keywords  
+✅ **SERP Preview**: View search engine result snippets before publishing  
+✅ **Batch Operations**: Generate for multiple products at once  
+✅ **Rate Limiting & Resilience**: Automatic retry, backoff, and circuit breaker  
+✅ **Audit Trail**: Complete history with GDPR compliance and content masking  
+✅ **Glossary Management**: Maintain technical and brand terms for consistency  
+
+#### Documentation
+
+- 📖 **Full Guide**: See [`addons/ecommerce_seo_translator_pro/README.md`](addons/ecommerce_seo_translator_pro/README.md)
+- 📚 **Usage Guide**: See [`addons/ecommerce_seo_translator_pro/USAGE.md`](addons/ecommerce_seo_translator_pro/USAGE.md)
+- 🚀 **Installation**: See installation section below
+
+---
+
+## 🗂️ Quick Navigation
+
+| Module | Purpose | Documentation |
+|--------|---------|----------------|
+| **Ovunque** | Natural language search queries | [`addons/ovunque/README.md`](addons/ovunque/README.md) |
+| **SEO Translator Pro** | AI product descriptions & translations | [`addons/ecommerce_seo_translator_pro/README.md`](addons/ecommerce_seo_translator_pro/README.md) |
+
+---
+
+## 🚀 Installation
+
+### Prerequisites (Both Modules)
 
 - **Odoo**: 19.0 or later
 - **Python**: 3.10+
-- **OpenAI API Key**: Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys) (simple queries use API; multi-model queries don't)
+- **OpenAI API Key**: Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
 ### Option 1: Standard Installation
 
 ```bash
-# 1. Copy module to Odoo addons directory
+# 1. Copy both modules to Odoo addons directory
 cp -r addons/ovunque /path/to/your/odoo/addons/
+cp -r addons/ecommerce_seo_translator_pro /path/to/your/odoo/addons/
 
-# 2. Install Python dependencies
+# 2. Install Python dependencies for both modules
 pip install -r /path/to/your/odoo/addons/ovunque/requirements.txt
+pip install -r /path/to/your/odoo/addons/ecommerce_seo_translator_pro/requirements.txt
 
 # 3. Restart Odoo
 ./odoo-bin -u all
 
-# 4. Log in to Odoo and install "Ovunque" module via Apps menu
+# 4. Log in to Odoo and install modules via Apps menu
+#    - Install "Ovunque"
+#    - Install "E-Commerce SEO Translator Pro"
 ```
 
 ### Option 2: Docker Installation
@@ -54,49 +117,77 @@ docker-compose up --build -d
 
 # 2. Wait 15 seconds for Odoo to start
 
-# 3. Install openai package in the container
-docker exec -u odoo odoo-ai-19 pip install --user --break-system-packages 'openai>=1.0.0'
+# 3. Install Python packages in the container
+docker exec -u odoo odoo-ai-19 pip install --user --break-system-packages \
+  'openai>=1.0.0' \
+  'tenacity>=8.0.0'
 
 # 4. Restart container
 docker restart odoo-ai-19
 
-# 5. Visit http://localhost:8069 and install "Ovunque" module
+# 5. Visit http://localhost:8069 and install both modules
+#    - Ovunque
+#    - E-Commerce SEO Translator Pro
 ```
 
-If you see "Impossibile installare il modulo" with missing openai dependency, repeat step 3 and restart.
+### Module-Specific Installation
+
+For detailed installation and configuration of each module, see:
+- **Ovunque**: See [`addons/ovunque/README.md#installation`](addons/ovunque/README.md#installation)
+- **SEO Translator Pro**: See [`addons/ecommerce_seo_translator_pro/README.md#installation`](addons/ecommerce_seo_translator_pro/README.md#installation)
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
-### Setting Up OpenAI API Key
+### Setting Up OpenAI API Key (Required for Both Modules)
+
+Both modules require OpenAI API access. Configure once and both will use it.
 
 #### Method 1: Via Odoo UI
 
+**For Ovunque:**
 1. Go to **Ovunque → Configuration → API Settings**
-2. Create a new parameter:
-   - **Key**: `ovunque.openai_api_key`
-   - **Value**: `sk-...` (your API key from openai.com)
+2. Create parameter: `ovunque.openai_api_key` = `sk-...`
+
+**For SEO Translator Pro:**
+1. Go to **Settings → E-Commerce → SEO Translator Pro**
+2. Paste API key in **OpenAI API Key** field
+3. Click **Save**
 
 #### Method 2: Via Python Shell
 
 ```python
+# Set once - both modules will use it
 env['ir.config_parameter'].sudo().set_param('ovunque.openai_api_key', 'sk-your-key')
+env['ir.config_parameter'].sudo().set_param('ecommerce_seo_translator_pro.openai_api_key', 'sk-your-key')
 ```
 
 #### Method 3: Via Environment File
 
-Create `.env` in the Ovunque directory:
-```
+```bash
+# Create .env in repository root
 OPENAI_API_KEY=sk-proj-abc123...
 ```
 
+### Module-Specific Configuration
+
+**Ovunque:**
+- No additional configuration needed after API key is set
+- See [`addons/ovunque/README.md#configuration`](addons/ovunque/README.md#configuration) for advanced options
+
+**SEO Translator Pro:**
+- Configure generation tone, word count, rate limits
+- Set up glossary for translations
+- See [`addons/ecommerce_seo_translator_pro/README.md#configuration`](addons/ecommerce_seo_translator_pro/README.md#configuration)
+
 ---
 
-## How to Use
+## 📖 How to Use
 
-### Basic Search
+### Ovunque - Natural Language Search
 
+**Basic Search:**
 1. Go to **Ovunque → Query Search** in the Odoo menu
 2. Select a **Category**:
    - Clienti / Contatti (Customers/Contacts)
@@ -112,50 +203,56 @@ OPENAI_API_KEY=sk-proj-abc123...
 4. Click **Search**
 5. Results appear in a table below
 
-### Query Examples
+📖 **Full usage guide**: See [`addons/ovunque/README.md#how-to-use`](addons/ovunque/README.md#how-to-use)
 
-#### Single-Model Queries (Simple)
+### SEO Translator Pro - Product SEO Optimization
 
-These use GPT-4 to convert natural language to Odoo domains:
+**Generate Description:**
+1. Go to **Products** (Inventory or Website)
+2. Open a product
+3. Go to **AI SEO Tools** tab
+4. (Optional) Fill: Keywords, Tone, Technical Specs
+5. Click **Generate SEO Description**
+6. Review and save
 
-**Customers/Contacts (res.partner)**
-- "Clienti attivi" → Active customers
-- "Fornitori da Milano" → Suppliers from Milan
-- "Partner non contattati nel 2024" → Untouched partners in 2024
+**Generate Meta-Tags:**
+1. Same as above, but click **Generate Meta-Tags**
+2. Auto-generates: Title (60 chars), Description (160 chars), Keywords
 
-**Invoices (account.move)**
-- "Fatture non pagate" → Unpaid invoices
-- "Fatture di gennaio 2025" → January 2025 invoices
-- "Documenti oltre 5000 euro" → Documents over 5000 euros
+**Translate:**
+1. Click **Translate All** to auto-translate to active languages
+2. Uses glossary if configured
 
-**Products (product.template)**
-```
-⚠️ IMPORTANT: Use "Prodotti" category for price searches!
-```
-- "Prodotti sotto 100 euro" → Products under 100 euros (uses list_price - selling price)
-- "Articoli con costo superiore a 50" → Products with internal cost > 50
-- "Prodotti attivi" → Active products
-- "Basso stock sotto 10" → Low stock items
+📖 **Full usage guide**: See [`addons/ecommerce_seo_translator_pro/README.md#usage`](addons/ecommerce_seo_translator_pro/README.md#usage)
 
-**Orders (sale.order / purchase.order)**
-- "Ordini della scorsa settimana" → Last week's orders
-- "Vendite sopra i 500 euro" → Sales over 500 euros
-- "Acquisti confermati di novembre" → November purchases
+### Ovunque - Query Examples
 
-#### Multi-Model Queries (Pattern-Based)
+For comprehensive query examples and documentation, see:
+📖 [`addons/ovunque/README.md#query-examples`](addons/ovunque/README.md#query-examples)
 
-These automatically detect cross-model patterns with NO API overhead:
+**Quick Examples:**
+- Single-model: "Clienti attivi", "Fatture non pagate", "Prodotti sotto 100€"
+- Multi-model: "Clienti con 10+ fatture", "Prodotti mai ordinati"
 
-- "**Clienti con più di 10 fatture**" → Clients with 10+ invoices
-- "**Fornitori con 5+ ordini**" → Suppliers with 5+ orders
-- "**Prodotti mai ordinati**" → Products with zero sales
-- "**Clienti senza acquisti**" → Customers with no purchase orders
+### SEO Translator Pro - Generation Examples
 
-**Key difference**: Multi-model queries skip the OpenAI API entirely and use pure regex pattern matching for speed and reliability.
+For comprehensive usage examples and API documentation, see:
+📖 [`addons/ecommerce_seo_translator_pro/USAGE.md`](addons/ecommerce_seo_translator_pro/USAGE.md)
+
+**Quick Examples:**
+- Professional tone: "Premium coffee maker" → 200-word SEO description
+- Casual tone: "Comfortable sneakers" → Friendly product copy
+- Technical tone: "Industrial LED panel" → Technical specifications focus
 
 ---
 
-## How It Works
+## 📚 Detailed Module Documentation
+
+### Ovunque - Detailed Guide
+
+The following sections provide detailed documentation for Ovunque. For SEO Translator Pro documentation, see [`addons/ecommerce_seo_translator_pro/README.md`](addons/ecommerce_seo_translator_pro/README.md).
+
+## How It Works (Ovunque)
 
 ### Simple (Single-Model) Queries
 
@@ -274,7 +371,7 @@ To add a new pattern, edit `MULTI_MODEL_PATTERNS` in `models/search_query.py`:
 
 ---
 
-## Supported Models
+### Supported Models (Ovunque)
 
 | Model | Description | Example Queries |
 |-------|-------------|-----------------|
@@ -297,7 +394,7 @@ To add a new pattern, edit `MULTI_MODEL_PATTERNS` in `models/search_query.py`:
 
 ---
 
-## API Reference
+### API Reference (Ovunque)
 
 ### POST /ovunque/search
 Execute a natural language search.
@@ -367,7 +464,7 @@ Returns an HTML page with two tables:
 
 ---
 
-## Troubleshooting & Debugging
+### Troubleshooting & Debugging (Ovunque)
 
 ### Problem: Empty Results `[]`
 
@@ -449,7 +546,7 @@ You've made too many API calls too quickly.
 
 ---
 
-## Advanced Debugging
+### Advanced Debugging (Ovunque)
 
 ### Using the Debug Fields Tool
 
@@ -495,7 +592,7 @@ Total stored fields: 50
 
 ---
 
-## Database Schema
+### Database Schema (Ovunque)
 
 ### search.query
 
@@ -528,7 +625,7 @@ Individual results from a search query.
 
 ---
 
-## Permissions
+### Permissions (Ovunque)
 
 Two access levels are implemented (see `security/ir.model.access.csv`):
 
@@ -537,7 +634,7 @@ Two access levels are implemented (see `security/ir.model.access.csv`):
 
 ---
 
-## Limitations
+### Limitations (Ovunque)
 
 ⚠️ **Know Before You Use**
 
@@ -551,58 +648,61 @@ Two access levels are implemented (see `security/ir.model.access.csv`):
 
 ---
 
-## Project Structure
+### Project Structure
 
 ```
 ai-odoo-data-assistant/
 ├── addons/
-│   └── ovunque/                    # Main Odoo module
-│       ├── __manifest__.py         # Module metadata & dependencies
-│       ├── __init__.py             # Imports models & controllers
-│       │
+│   ├── ovunque/                              # Module 1: Natural Language Search
+│   │   ├── __manifest__.py                   # Module metadata
+│   │   ├── __init__.py
+│   │   ├── models/
+│   │   │   ├── search_query.py              # Core business logic
+│   │   │   └── ...
+│   │   ├── controllers/
+│   │   ├── views/
+│   │   ├── security/
+│   │   ├── README.md                        # Module documentation
+│   │   ├── DEVELOPMENT.md                   # Developer guide
+│   │   └── requirements.txt
+│   │
+│   └── ecommerce_seo_translator_pro/        # Module 2: SEO Optimization
+│       ├── __manifest__.py                   # Module metadata
+│       ├── __init__.py
 │       ├── models/
-│       │   ├── __init__.py
-│       │   ├── search_query.py    # Core business logic
-│       │   │                       # - SearchQuery model
-│       │   │                       # - Multi-model pattern matching
-│       │   │                       # - LLM integration
-│       │   │                       # - Domain parsing & validation
-│       │   └── sql_generator.py    # (Optional) SQL generation for complex queries
-│       │
+│       │   ├── ai_service.py                # AI service provider
+│       │   ├── product_template.py          # Product extensions
+│       │   ├── seo_config.py                # Configuration
+│       │   ├── glossary.py                  # Translation glossary
+│       │   └── history.py                   # Audit trail
 │       ├── controllers/
-│       │   ├── __init__.py
-│       │   └── search_controller.py # REST API endpoints
-│       │                            # - /ovunque/search (main search)
-│       │                            # - /ovunque/models (list categories)
-│       │                            # - /ovunque/debug-fields (field inspector)
-│       │
+│       │   └── website_controller.py        # REST API endpoints
 │       ├── views/
-│       │   ├── search_query_views.xml # UI forms & lists
-│       │   └── menu.xml               # Odoo menu configuration
-│       │
+│       │   ├── product_template_views.xml
+│       │   ├── seo_config_views.xml
+│       │   ├── glossary_views.xml
+│       │   └── website_templates.xml
 │       ├── security/
-│       │   └── ir.model.access.csv   # User/Manager permissions
-│       │
-│       ├── utils.py                  # Helper functions
-│       │                             # - API key management
-│       │                             # - Field extraction for LLM
-│       │                             # - Result parsing
-│       │
-│       ├── debug_fields.py           # Shell script for field inspection
-│       ├── requirements.txt          # Python dependencies (openai)
-│       ├── .env.example              # Environment variables template
-│       ├── DEVELOPMENT.md            # Developer guide
-│       └── README.md                 # Module-specific documentation
+│       ├── data/
+│       │   ├── demo_data.xml
+│       │   └── seo_cron_data.xml
+│       ├── tests/
+│       │   ├── test_ai_generation.py
+│       │   └── mock_ai_provider.py
+│       ├── README.md                        # Module documentation
+│       ├── CHANGELOG.md
+│       ├── USAGE.md                         # Usage guide & API examples
+│       └── requirements.txt
 │
-├── docker-compose.yml               # Docker setup
-├── odoo.conf                        # Odoo configuration
-├── CLAUDE.md                        # Development notes
-└── README.md                        # This file
+├── docker-compose.yml                       # Docker setup for both modules
+├── odoo.conf                                # Odoo configuration
+├── CLAUDE.md                                # Development notes
+└── README.md                                # This file (main documentation hub)
 ```
 
 ---
 
-## Key Code Components
+### Key Code Components (Ovunque)
 
 ### SearchQuery Model (models/search_query.py)
 
@@ -631,7 +731,7 @@ ai-odoo-data-assistant/
 
 ---
 
-## Performance
+### Performance
 
 ### Simple Queries (Single-Model)
 - **Speed**: ~1-2 seconds (limited by OpenAI API)
@@ -645,7 +745,7 @@ ai-odoo-data-assistant/
 
 ---
 
-## Security
+### Security
 
 ✅ **Odoo RLS Respected**: All searches use ORM, not raw SQL
 ✅ **No SQL Injection**: Domain validation prevents malicious input
@@ -655,13 +755,25 @@ ai-odoo-data-assistant/
 
 ---
 
-## Version History
+## 📝 Version History
 
+### Ovunque
 - **v19.0.2.0.0** - Multi-model pattern matching, improved docs
 - **v19.0.1.0.0** - Initial release with GPT-4 integration
 
+### E-Commerce SEO Translator Pro
+- **v19.0.1.0.0** - Initial release with description generation, translation, and meta-tags
+
 ---
 
-## Support & Contributing
+## 🤝 Support & Contributing
 
-For issues, questions, or contributions, see the development guide in `addons/ovunque/DEVELOPMENT.md`.
+### Documentation
+
+- **Main Documentation**: See this README
+- **Ovunque Guide**: See [`addons/ovunque/README.md`](addons/ovunque/README.md) and [`addons/ovunque/DEVELOPMENT.md`](addons/ovunque/DEVELOPMENT.md)
+- **SEO Pro Guide**: See [`addons/ecommerce_seo_translator_pro/README.md`](addons/ecommerce_seo_translator_pro/README.md) and [`addons/ecommerce_seo_translator_pro/USAGE.md`](addons/ecommerce_seo_translator_pro/USAGE.md)
+
+### Development Notes
+
+See [`CLAUDE.md`](CLAUDE.md) for architecture decisions, debugging tips, and development workflow.

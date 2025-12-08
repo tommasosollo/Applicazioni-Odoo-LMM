@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <!-- 
+      Glossary Management Views
+      
+      This file defines the user interface for managing translation glossary terms.
+      The glossary is used to maintain consistent terminology when translating
+      product descriptions across different languages.
+      
+      Terms can be categorized as: Product, Technical, Marketing, or Brand
+      Each term can be enabled/disabled and filtered by language code.
+    -->
+    
+    <!-- 
+      Glossary Form View
+      
+      Allows users to create or edit a single glossary entry with:
+      - Original English term
+      - Translation in target language
+      - Language code (e.g., 'it', 'es', 'fr')
+      - Category (Product, Technical, Marketing, Brand)
+      - Active status (enable/disable)
+      - Notes for additional context
+    -->
+    <record id="seo_ai_glossary_form" model="ir.ui.view">
+      <field name="name">seo.ai.glossary.form</field>
+      <field name="model">seo.ai.glossary</field>
+      <field name="arch" type="xml">
+        <form string="Glossary Entry">
+          <group>
+            <field name="term" help="Original English term"/>
+            <field name="translation" help="Translated term in target language"/>
+            <field name="language_code" help="Language code: it, es, fr, de, etc."/>
+            <field name="category" help="Category: Product, Technical, Marketing, or Brand"/>
+            <field name="active" help="Enable/disable this glossary term"/>
+          </group>
+          <group string="Notes">
+            <field name="notes" help="Additional context or notes for translators"/>
+          </group>
+        </form>
+      </field>
+    </record>
+    
+    <!-- 
+      Glossary List View
+      
+      Displays all glossary entries in a tabular format for quick overview.
+      Shows term, translation, language code, category, and active status.
+      Users can filter and sort by any column.
+    -->
+    <record id="seo_ai_glossary_list" model="ir.ui.view">
+      <field name="name">seo.ai.glossary.list</field>
+      <field name="model">seo.ai.glossary</field>
+      <field name="arch" type="xml">
+        <list string="Glossary">
+          <field name="term"/>
+          <field name="translation"/>
+          <field name="language_code"/>
+          <field name="category"/>
+          <field name="active" widget="boolean"/>
+        </list>
+      </field>
+    </record>
+    
+    <!-- 
+      Glossary Search and Filter View
+      
+      Provides search and filtering capabilities:
+      - Search by term name, translation, or language code
+      - Filter by active status (show only enabled terms)
+      - Filter by category: Product, Technical, Marketing
+      - Default filter: show only active terms on open
+    -->
+    <record id="seo_ai_glossary_search" model="ir.ui.view">
+      <field name="name">seo.ai.glossary.search</field>
+      <field name="model">seo.ai.glossary</field>
+      <field name="arch" type="xml">
+        <search string="Search Glossary">
+          <!-- Searchable fields -->
+          <field name="term"/>
+          <field name="translation"/>
+          <field name="language_code"/>
+          <separator/>
+          <!-- Predefined filters -->
+          <!-- Show only active glossary terms -->
+          <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
+          <!-- Show only product category terms -->
+          <filter name="filter_product" string="Product Terms" domain="[('category', '=', 'product')]"/>
+          <!-- Show only technical category terms -->
+          <filter name="filter_technical" string="Technical Terms" domain="[('category', '=', 'technical')]"/>
+          <!-- Show only marketing category terms -->
+          <filter name="filter_marketing" string="Marketing Terms" domain="[('category', '=', 'marketing')]"/>
+        </search>
+      </field>
+    </record>
+    
+    <!-- 
+      Glossary Management Action
+      
+      Window action to open the glossary management interface.
+      Opens list view by default, allowing users to switch to form view.
+      Automatically filters to show only active terms when opened.
+    -->
+    <record id="action_seo_ai_glossary" model="ir.actions.act_window">
+      <field name="name">Glossary Management</field>
+      <field name="res_model">seo.ai.glossary</field>
+      <field name="view_mode">list,form</field>
+      <field name="domain">[]</field>
+      <field name="context">{'search_default_filter_active': 1}</field>
+    </record>
+  </data>
+</odoo>
