@@ -1,3644 +1,0 @@
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\CHANGELOG.md =====
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-## [19.0.1.0.0] - 2025-01-15
-
-### Added
-- **AI Description Generation**: Generate SEO-optimized product descriptions using GPT-4
-- **Contextual Translation**: Translate descriptions with custom glossary support
-- **Meta-Tag Generation**: Automatic generation of SEO meta-tags (title, description, keywords)
-- **SERP Preview**: Display search engine result page snippet preview
-- **Glossary Management**: Maintain technical and brand-specific terms for translations
-- **Rate Limiting**: Limit API calls to 5 requests per minute per user
-- **Circuit Breaker**: Automatic failure recovery with exponential backoff
-- **Audit Trail**: Complete history of all generations with user tracking
-- **GDPR Compliance**: Content masking and SHA256 hashing for privacy
-- **Batch Operations**: Generate for multiple products in one action
-- **REST API**: JSON endpoints for integration
-- **Access Control**: Role-based permissions (User, Manager)
-- **Async Support**: Compatible with queue_job for background processing
-- **Demo Data**: Sample glossary entries for Italian language
-- **Cron Jobs**: Automatic cleanup of old history records (90+ days)
-
-### Technical
-- Compatible with Odoo 19.0 and OWL 2
-- Python 3.10+ with type hints
-- Full test coverage with mock provider
-- OpenAI GPT-4 integration
-- Retry logic with tenacity library
-- Complete logging with structured prefixes
-
-### Documentation
-- Comprehensive README with installation and usage
-- USAGE.md with API examples and prompts
-- Security and GDPR notes
-- Troubleshooting guide
-
-## [Unreleased]
-
-### Planned
-- Support for multiple AI providers (Anthropic Claude, Groq, Ollama)
-- Advanced aggregations (SUM, AVG, COUNT in glossary)
-- Temporal patterns (e.g., "not contacted in 6 months")
-- Pattern learning from user feedback
-- UI wizard for creating custom patterns
-- SQL optimization for large datasets with caching
-- Support for custom models
-- Multi-table correlations (3+ tables)
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\README.md =====
-# E-Commerce SEO Translator Pro
-
-**AI-powered SEO description generation, translation, and meta-tag creation for Odoo products.**
-
-## Features
-
-âœ… **AI Description Generation** - Generate SEO-optimized product descriptions (150-250 words) using GPT-4  
-âœ… **Contextual Translation** - Translate descriptions while respecting brand glossary  
-âœ… **Meta-Tag Generation** - Automatically generate SEO meta-tags (title, description, keywords)  
-âœ… **SERP Preview** - Preview search engine result snippets  
-âœ… **Rate Limiting & Resilience** - Automatic retry, backoff, and circuit breaker protection  
-âœ… **Audit Trail** - Complete history of all generations with GDPR compliance  
-âœ… **Batch Operations** - Generate for multiple products at once  
-âœ… **Glossary Management** - Maintain technical terms for accurate translations  
-
-## Installation
-
-### Prerequisites
-
-- **Odoo**: 19.0 or later
-- **Python**: 3.10+
-- **OpenAI API Key**: Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-
-### Setup
-
-```bash
-# 1. Copy module to addons
-cp -r ecommerce_seo_translator_pro /path/to/odoo/addons/
-
-# 2. Install dependencies
-pip install -r ecommerce_seo_translator_pro/requirements.txt
-
-# 3. Restart Odoo
-./odoo-bin -u all
-
-# 4. Install module via Odoo UI
-# Go to Apps â†’ Search "E-Commerce SEO Translator Pro" â†’ Install
-```
-
-## Configuration
-
-### Step 1: Set OpenAI API Key
-
-**Via Odoo UI:**
-1. Go to **Settings â†’ E-Commerce â†’ SEO Translator Pro**
-2. Paste your OpenAI API key in the **OpenAI API Key** field
-3. Click **Save**
-
-**Via Python Shell:**
-```python
-env['ir.config_parameter'].sudo().set_param(
-    'ecommerce_seo_translator_pro.openai_api_key', 
-    'sk-your-key-here'
-)
-```
-
-### Step 2: Configure Settings
-
-In **Settings â†’ E-Commerce â†’ SEO Translator Pro**, configure:
-
-- **AI Provider**: OpenAI (GPT-4) or Mock (testing)
-- **Default Description Tone**: Professional, Casual, or Technical
-- **Default Word Count**: Target words (150-250)
-- **Enable Rate Limiting**: Limit to 5 requests/minute per user
-- **Enable Async Generation**: Use background jobs (requires queue_job)
-- **GDPR Masking**: Hash sensitive content in logs
-
-## Usage
-
-### Generate Description
-
-1. Go to **Products** (Inventory or Website)
-2. Open a product
-3. Go to **AI SEO Tools** tab
-4. Fill in optional fields:
-   - **Technical Specifications**: Additional specs for AI to consider
-   - **Keywords**: Comma-separated keywords to incorporate
-   - **Tone**: Professional, Casual, or Technical
-5. Click **Generate SEO Description**
-6. AI generates description and meta-tags
-7. Review in preview
-8. Click **Save** to confirm
-
-### Translate Descriptions
-
-1. Open a product (must be in primary language)
-2. Go to **AI SEO Tools** tab
-3. Click **Translate All**
-4. AI translates to all active languages using glossary
-5. Translations are saved automatically
-
-### Generate Meta-Tags
-
-1. Open a product
-2. Go to **AI SEO Tools** tab
-3. Click **Generate Meta-Tags**
-4. AI generates:
-   - Meta Title (max 60 chars)
-   - Meta Description (max 160 chars)
-   - Meta Keywords (comma-separated)
-
-### Batch Generation
-
-**Via Odoo UI:**
-1. Go to **Products** list
-2. Select multiple products (checkboxes)
-3. Actions dropdown â†’ Generate Descriptions / Generate Meta-Tags / Translate
-
-**Via API:**
-```json
-POST /seo-ai/batch-generate
-{
-  "product_ids": [1, 2, 3],
-  "action": "description"
-}
-```
-
-## API Reference
-
-### Generate Description
-
-```json
-POST /seo-ai/batch-generate
-{
-  "product_ids": [123],
-  "action": "description"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Batch generation completed for 1 products",
-  "count": 1
-}
-```
-
-### Get Meta Preview (SERP Snippet)
-
-```json
-POST /seo-ai/meta-preview
-{
-  "product_id": 123
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "title": "Premium Product | Best Quality",
-  "url": "/shop/p/123",
-  "description": "Discover exceptional quality with our premium product...",
-  "keywords": "product, quality, premium",
-  "last_generated": "2025-01-15T10:30:00"
-}
-```
-
-### Get Generation History
-
-```json
-GET /seo-ai/history?product_id=123&limit=10
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "history": [
-    {
-      "id": 1,
-      "action": "description_generation",
-      "status": "success",
-      "create_date": "2025-01-15T10:30:00",
-      "user": "Admin",
-      "duration_ms": 3200
-    }
-  ],
-  "count": 1
-}
-```
-
-## Glossary Management
-
-### Add Terms
-
-1. Go to **Settings â†’ E-Commerce â†’ Glossary Management**
-2. Click **Create**
-3. Fill in:
-   - **English Term**: Original term (e.g., "warranty")
-   - **Translation**: Translated term (e.g., "garanzia" for Italian)
-   - **Language Code**: Target language (e.g., "it", "es", "fr")
-   - **Category**: Product, Technical, Marketing, or Brand
-4. Click **Save**
-
-### View Glossary
-
-- **By Language**: Filter by language code
-- **By Category**: Filter by term category
-- **Search**: Search by term or translation
-
-## Troubleshooting
-
-### No Results Generated
-
-**Check:**
-1. OpenAI API key is set and valid
-2. API key has credits (check platform.openai.com/account/billing)
-3. Internet connection is working
-4. Check product has name and description
-
-**Debug:**
-- Go to product â†’ AI SEO Tools tab
-- Check **Debug Information** field for error messages
-
-### Translation Not Working
-
-**Check:**
-1. Product has translations enabled in Odoo
-2. Active languages are configured
-3. Glossary has entries for target language (optional)
-
-### Rate Limit Exceeded
-
-**Solution:**
-- Wait 1 minute before trying again
-- Rate limit is 5 requests per minute per user
-
-### API Key Error
-
-**Solution:**
-1. Get new key from platform.openai.com/api-keys
-2. Ensure no spaces in key
-3. Test key in Python:
-   ```python
-   from openai import OpenAI
-   client = OpenAI(api_key='sk-...')
-   models = client.models.list()
-   ```
-
-## Security
-
-âœ… **No Raw SQL** - Uses Odoo ORM only  
-âœ… **Field Validation** - Only allowed fields accepted  
-âœ… **Audit Logging** - All operations logged  
-âœ… **GDPR Compliant** - Content masking option  
-âœ… **Access Control** - Group-based permissions  
-âœ… **API Key Safety** - Keys stored securely  
-
-## Permissions
-
-- **SEO AI User**: Can generate descriptions, translations, meta-tags
-- **SEO AI Manager**: Full access including glossary management and audit logs
-
-## Performance
-
-| Operation | Speed | Cost |
-|-----------|-------|------|
-| Description Generation | ~3-5 seconds | ~$0.03 |
-| Translation | ~2-3 seconds | ~$0.02 |
-| Meta-Tags | ~2-3 seconds | ~$0.02 |
-| Batch (10 products) | ~30-40 seconds | ~$0.30 |
-
-## Limitations
-
-âš ï¸ **Note:**
-- Max 50 characters for meta title (auto-truncated to 60)
-- Max 160 characters for meta description
-- Max 200 characters for meta keywords
-- Works best with 150-250 word descriptions
-- Requires paid OpenAI API (GPT-4)
-
-## Support
-
-For issues, questions, or feature requests, refer to the main project documentation at `../README.md`.
-
-## Version History
-
-- **v19.0.1.0.0** - Initial release with description, translation, and meta-tag generation
-
-## License
-
-LGPL-3 - See LICENSE file
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\requirements.txt =====
-openai>=1.0.0
-packaging
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\USAGE.md =====
-# Usage Guide - E-Commerce SEO Translator Pro
-
-## Quick Start
-
-### 1. Set Up API Key (First Time Only)
-
-```
-Settings â†’ E-Commerce â†’ SEO Translator Pro
-â†“
-Paste your OpenAI API key
-â†“
-Save
-```
-
-### 2. Generate Description
-
-```
-Products â†’ Open Product
-â†“
-AI SEO Tools tab
-â†“
-Optionally fill: Tone, Keywords, Technical Specs
-â†“
-Click "Generate SEO Description"
-â†“
-Confirm changes and save
-```
-
-### 3. Generate Meta-Tags
-
-```
-Products â†’ Open Product
-â†“
-AI SEO Tools tab
-â†“
-Click "Generate Meta-Tags"
-â†“
-Auto-populated: Meta Title, Description, Keywords
-```
-
----
-
-## API Examples
-
-### Example 1: Generate Description for Product
-
-**Request:**
-```bash
-curl -X POST http://localhost:8069/seo-ai/batch-generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_ids": [123],
-    "action": "description"
-  }'
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Batch generation completed for 1 products",
-  "count": 1
-}
-```
-
-### Example 2: Get SERP Preview
-
-**Request:**
-```bash
-curl -X POST http://localhost:8069/seo-ai/meta-preview \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_id": 123
-  }'
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "title": "Premium Wireless Headphones | Best Sound Quality",
-  "url": "/shop/p/123",
-  "description": "Experience exceptional audio with our premium wireless headphones. Advanced noise cancellation, 30-hour battery life, and premium build quality...",
-  "keywords": "headphones, wireless, audio, premium",
-  "last_generated": "2025-01-15T10:30:00"
-}
-```
-
-### Example 3: Get Generation History
-
-**Request:**
-```bash
-curl -X GET "http://localhost:8069/seo-ai/history?product_id=123&limit=5"
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "history": [
-    {
-      "id": 1,
-      "action": "description_generation",
-      "status": "success",
-      "create_date": "2025-01-15T10:30:00",
-      "user": "Admin",
-      "duration_ms": 3200
-    },
-    {
-      "id": 2,
-      "action": "meta_tags_generation",
-      "status": "success",
-      "create_date": "2025-01-15T10:25:00",
-      "user": "Admin",
-      "duration_ms": 2800
-    }
-  ],
-  "count": 2
-}
-```
-
----
-
-## Prompt Variations
-
-### Variation 1: Professional Tone
-
-**Input:**
-```
-Product: Premium Coffee Maker
-Tone: Professional
-Keywords: espresso, coffee, Italian, premium
-Technical Specs: Dual boiler system, 15 bar pressure, stainless steel
-```
-
-**Output (Description):**
-```html
-<p>
-  Discover the pinnacle of coffee craftsmanship with our premium Italian espresso machine. 
-  Engineered with precision and built to exacting standards, this professional-grade coffee maker 
-  delivers barista-quality espresso with every extraction.
-</p>
-<ul>
-  <li>Dual boiler system for simultaneous brewing and steaming</li>
-  <li>15 bar pressure for optimal extraction</li>
-  <li>Premium stainless steel construction</li>
-  <li>Professional-grade components throughout</li>
-</ul>
-<p>
-  Whether you're a coffee enthusiast or a seasoned barista, this espresso machine 
-  sets the standard for premium home coffee brewing.
-</p>
-```
-
-**Output (Meta-Tags):**
-```
-Meta Title: Premium Italian Espresso Machine | Professional Coffee Maker
-Meta Description: Professional-grade espresso machine with dual boiler system and 15 bar pressure. Barista-quality coffee at home.
-Meta Keywords: espresso machine, coffee maker, Italian, premium, professional
-```
-
----
-
-### Variation 2: Casual Tone
-
-**Input:**
-```
-Product: Casual Sneakers
-Tone: Casual
-Keywords: sneakers, comfort, style, everyday
-Technical Specs: Memory foam insoles, lightweight mesh, durable outsole
-```
-
-**Output (Description):**
-```html
-<p>
-  Meet your new favorite sneaker! We've packed serious comfort and style into every pair, 
-  so you can look great and feel amazing from morning to night.
-</p>
-<ul>
-  <li>Ultra-comfy memory foam insoles</li>
-  <li>Lightweight breathable mesh</li>
-  <li>Built to last with durable outsole</li>
-  <li>Perfect for any casual occasion</li>
-</ul>
-<p>
-  Grab a pair and experience the difference quality footwear makes. Your feet will thank you!
-</p>
-```
-
-**Output (Meta-Tags):**
-```
-Meta Title: Comfy & Stylish Sneakers | Perfect for Everyday
-Meta Description: The ultimate sneaker for comfort and style. Memory foam insoles, lightweight design. Perfect for everyday wear!
-Meta Keywords: sneakers, comfortable shoes, casual style, everyday footwear
-```
-
----
-
-### Variation 3: Technical Tone
-
-**Input:**
-```
-Product: Industrial LED Panel
-Tone: Technical
-Keywords: LED, industrial, efficiency, specification
-Technical Specs: 4000K color temp, 95+ CRI, 200lm/W efficiency, IP65 rated
-```
-
-**Output (Description):**
-```html
-<p>
-  High-performance LED panel engineered for demanding industrial applications. 
-  Specifications designed to exceed professional lighting standards.
-</p>
-<ul>
-  <li>4000K color temperature for daylight simulation</li>
-  <li>95+ CRI ensures accurate color rendering</li>
-  <li>200lm/W luminous efficacy (industry leading)</li>
-  <li>IP65 environmental protection rating</li>
-</ul>
-<p>
-  Ideal for manufacturing facilities, workshops, and commercial spaces requiring 
-  precise lighting specifications and operational efficiency.
-</p>
-```
-
-**Output (Meta-Tags):**
-```
-Meta Title: Industrial LED Panel 200lm/W | 4000K Technical Specs
-Meta Description: High-performance LED panel with 95+ CRI, IP65 rating. 200lm/W efficiency for industrial applications.
-Meta Keywords: LED panel, industrial lighting, 4000K, IP65, high efficiency
-```
-
----
-
-## Glossary Examples
-
-### Italian Glossary Setup
-
-| English Term | Italian | Category | Notes |
-|------------|-----------|-----------|--------|
-| warranty | garanzia | product | Standard product warranty |
-| premium | premium | brand | Brand positioning term |
-| eco-friendly | ecologico | marketing | Environmental marketing |
-| specifications | specifiche | technical | Technical documentation |
-| durability | durabilitÃ  | product | Product feature |
-| energy-efficient | efficienza energetica | technical | Technical specification |
-
-### Usage Example
-
-**Original (English):**
-```
-This premium product features eco-friendly materials and excellent durability with a 2-year warranty.
-```
-
-**After Translation to Italian (using glossary):**
-```
-Questo prodotto premium utilizza materiali ecologici e offre eccellente durabilitÃ  con garanzia di 2 anni.
-```
-
----
-
-## Translation Workflow
-
-### Step 1: Set Primary Language
-
-- Go to Settings â†’ Languages
-- Mark one as primary (usually "en_US")
-- Add other active languages (e.g., Italian, Spanish, French)
-
-### Step 2: Create Glossary (Optional)
-
-- Settings â†’ E-Commerce â†’ Glossary Management
-- Add key terms for each language
-- Ensures consistency across translations
-
-### Step 3: Generate Translations
-
-```
-Product (in English) â†’ Open
-â†“
-AI SEO Tools tab
-â†“
-Click "Translate All"
-â†“
-Wait for auto-translation to all languages
-â†“
-Review translations
-```
-
-### Step 4: Verify Translations
-
-- Each language version is automatically saved
-- Glossary terms are respected
-- Manual edits can still be done per language
-
----
-
-## Batch Generation Best Practices
-
-### Best Practice 1: Generate All at Once
-
-```bash
-# Select 50 products in list view
-# Actions â†’ Generate Descriptions
-# All 50 get generated in ~10-15 minutes
-```
-
-### Best Practice 2: Stagger for Rate Limits
-
-```bash
-# If rate limit hit, wait 1 minute
-# Then continue with next batch
-# Safe limit: 5 products every minute (5 req/min limit)
-```
-
-### Best Practice 3: Review Quality
-
-```bash
-# Generate descriptions in batches of 5-10
-# Review quality before proceeding
-# Make manual adjustments if needed
-# Helps maintain brand consistency
-```
-
----
-
-## Troubleshooting
-
-### Issue: "OpenAI API key not configured"
-
-**Solution:**
-1. Go to Settings â†’ E-Commerce â†’ SEO Translator Pro
-2. Paste your API key from platform.openai.com/api-keys
-3. Click Save
-4. Reload module if needed: Apps â†’ SEO Translator Pro â†’ Reload
-
-### Issue: "Rate limit exceeded. Maximum 5 requests per minute"
-
-**Solution:**
-- Wait 60 seconds before trying again
-- Stagger batch operations
-- Increase time between generations
-
-### Issue: Empty or Poor Quality Generated Content
-
-**Solution:**
-1. Provide more detail in Technical Specifications
-2. Add relevant Keywords
-3. Ensure product Description is filled in
-4. Check Odoo logs for API errors
-5. Verify API key is valid
-
-### Issue: Translation Not Working
-
-**Solution:**
-1. Ensure product has translations enabled
-2. Add target languages in Settings â†’ Languages
-3. Create glossary entries (optional but recommended)
-4. Check internet connection
-5. Verify API key has credits
-
----
-
-## Advanced Configuration
-
-### Enable Async Generation (Requires queue_job)
-
-```bash
-# Settings â†’ E-Commerce â†’ SEO Translator Pro
-# Enable "Enable Async Generation"
-# Save
-
-# Then in terminal, start queue job worker:
-./odoo-bin -u all
-# Queue jobs will process in background
-```
-
-### Enable GDPR Content Masking
-
-```bash
-# Settings â†’ E-Commerce â†’ SEO Translator Pro
-# Enable "GDPR: Mask Content in Logs"
-# Save
-
-# All sensitive content will be hashed (SHA256)
-# while still maintaining audit trail
-```
-
-### Customize Rate Limits
-
-Edit `models/ai_service.py`:
-```python
-# Line ~65
-if len(requests) >= 5:  # Change 5 to desired limit
-    return True
-```
-
-Then reload module.
-
----
-
-## Cost Optimization
-
-### Tip 1: Use Batch Operations
-
-| Method | Cost per Product |
-|--------|-----------------|
-| Individual generation | ~$0.03 |
-| Batch of 10 | ~$0.03 total / $0.003 each |
-| Batch of 50 | ~$0.15 total / $0.003 each |
-
-### Tip 2: Reuse Translations
-
-- Glossary terms prevent re-translation
-- Share between similar products
-- Reduces API calls and costs
-
-### Tip 3: Schedule During Off-Hours
-
-- Process batches at night
-- Avoid peak API rate limits
-- Potential for lower costs during low-demand periods
-
----
-
-## Monitoring & Analytics
-
-### View Generation Stats
-
-```python
-# In Odoo shell
-stats = env['seo.ai.history'].get_stats_by_product(product_id)
-print(f"Total generations: {stats['total_actions']}")
-print(f"Successful: {stats['successful']}")
-print(f"Errors: {stats['errors']}")
-```
-
-### Export History
-
-```python
-# In Odoo shell
-records = env['seo.ai.history'].search([
-    ('create_date', '>=', '2025-01-01'),
-])
-for r in records:
-    print(f"{r.product_id.name}: {r.action} ({r.status})")
-```
-
-### Cleanup Old Records
-
-```python
-# In Odoo shell (keep last 90 days)
-deleted_count = env['seo.ai.history'].cleanup_old_records(days=90)
-print(f"Deleted {deleted_count} old records")
-```
-
-This happens automatically via cron weekly.
-
----
-
-## Next Steps
-
-- Read the main [README.md](README.md) for installation and configuration
-- Explore the [API Reference](README.md#api-reference) for integration
-- Check [Glossary Management](README.md#glossary-management) for translation setup
-- Review [Security](README.md#security) for GDPR and data protection
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\__init__.py =====
-from . import models
-from . import controllers
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\__manifest__.py =====
-{
-    'name': 'E-Commerce SEO Translator Pro',
-    'version': '19.0.1.0.0',
-    'category': 'E-Commerce',
-    'summary': 'AI-powered SEO description generation, translation, and meta-tag creation for products',
-    'description': '''
-        E-Commerce SEO Translator Pro
-
-        Generate SEO-optimized product descriptions, automatic translations with glossary support,
-        and meta-tag creation using AI. Features include:
-
-        â€¢ AI-powered description generation (150-250 words, SEO optimized)
-        â€¢ Contextual translation with custom glossary
-        â€¢ Automatic meta-tag generation (title, description, keywords)
-        â€¢ SERP preview snippets
-        â€¢ Rate limiting and resilience (retry, backoff, circuit breaker)
-        â€¢ Async/Queue job support
-        â€¢ Full audit trail
-        â€¢ GDPR compliant
-
-        Compatible with Odoo 19 and OWL 2.
-    ''',
-    'author': 'AI-Odoo Development',
-    'license': 'LGPL-3',
-    'depends': [
-        'product',
-        'website',
-        'website_sale',
-        'base',
-    ],
-    'data': [
-        'security/security.xml',
-        'security/ir.model.access.csv',
-        'views/product_template_views.xml',
-        'views/seo_config_views.xml',
-        'views/glossary_views.xml',
-        'views/website_templates.xml',
-        'data/demo_data.xml',
-        'data/seo_cron_data.xml',
-    ],
-    'installable': True,
-    'application': False,
-    'auto_install': False,
-    'external_dependencies': {
-        'python': [
-            'openai>=1.0.0',
-            'tenacity>=8.0.0',
-        ],
-    },
-    'assets': {
-        'web.assets_backend': [
-            'ecommerce_seo_translator_pro/static/src/js/seo_preview.js',
-        ],
-    },
-}
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\controllers\website_controller.py =====
-import logging
-import json
-from odoo import http, _
-from odoo.http import request
-
-_logger = logging.getLogger(__name__)
-
-
-class SEOAIWebsiteController(http.Controller):
-
-    @http.route(
-        '/seo-ai/meta-preview',
-        type='json',
-        auth='user',
-        methods=['POST'],
-    )
-    def get_meta_preview(self, product_id: int) -> dict:
-        """
-        Get SERP preview (search engine results page snippet).
-
-        Args:
-            product_id: product.template ID
-
-        Returns:
-            JSON with meta-tag preview
-        """
-        try:
-            product = request.env['product.template'].browse(product_id)
-
-            if not product.exists():
-                return {
-                    'success': False,
-                    'error': _('Product not found'),
-                }
-
-            preview = {
-                'success': True,
-                'title': product.meta_title or product.name,
-                'url': product.get_absolute_url() if hasattr(product, 'get_absolute_url') else f'/shop/p/{product_id}',
-                'description': product.meta_description or product.description_sale or '',
-                'keywords': product.meta_keywords or '',
-                'last_generated': product.seo_last_generated.isoformat() if product.seo_last_generated else None,
-            }
-
-            return preview
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Error in meta preview: %s', str(e))
-            return {
-                'success': False,
-                'error': str(e),
-            }
-
-    @http.route(
-        '/seo-ai/batch-generate',
-        type='json',
-        auth='user',
-        methods=['POST'],
-    )
-    def batch_generate_descriptions(self, product_ids: list, action: str = 'description') -> dict:
-        """
-        Generate descriptions/meta-tags for multiple products.
-
-        Args:
-            product_ids: List of product.template IDs
-            action: 'description', 'meta_tags', or 'translate'
-
-        Returns:
-            JSON with batch operation status
-        """
-        try:
-            if not request.env.user.has_group('ecommerce_seo_translator_pro.group_ecommerce_seo_ai'):
-                return {
-                    'success': False,
-                    'error': _('Permission denied'),
-                }
-
-            products = request.env['product.template'].browse(product_ids)
-
-            if action == 'description':
-                products.action_generate_ai_description()
-            elif action == 'meta_tags':
-                products.action_generate_meta_tags()
-            elif action == 'translate':
-                products.action_translate_descriptions()
-            else:
-                return {
-                    'success': False,
-                    'error': _('Unknown action'),
-                }
-
-            _logger.info('[SEO-AI] Batch %s completed for %d products', action, len(product_ids))
-
-            return {
-                'success': True,
-                'message': _('Batch generation completed for %d products') % len(product_ids),
-                'count': len(product_ids),
-            }
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Batch generation error: %s', str(e))
-            return {
-                'success': False,
-                'error': str(e),
-            }
-
-    @http.route(
-        '/seo-ai/history',
-        type='json',
-        auth='user',
-        methods=['GET'],
-    )
-    def get_generation_history(self, product_id: int, limit: int = 10) -> dict:
-        """
-        Get generation history for a product.
-
-        Args:
-            product_id: product.template ID
-            limit: Maximum records to return
-
-        Returns:
-            JSON with history records
-        """
-        try:
-            history_records = request.env['seo.ai.history'].search(
-                [('product_id', '=', product_id)],
-                limit=limit,
-                order='create_date desc'
-            )
-
-            history_data = []
-            for record in history_records:
-                history_data.append({
-                    'id': record.id,
-                    'action': record.action,
-                    'status': record.status,
-                    'create_date': record.create_date.isoformat(),
-                    'user': record.user_id.name,
-                    'duration_ms': record.duration_ms,
-                })
-
-            return {
-                'success': True,
-                'history': history_data,
-                'count': len(history_data),
-            }
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Error retrieving history: %s', str(e))
-            return {
-                'success': False,
-                'error': str(e),
-            }
-
-    @http.route(
-        '/seo-ai/config',
-        type='json',
-        auth='user',
-        methods=['GET'],
-    )
-    def get_config(self) -> dict:
-        """
-        Get module configuration (for frontend).
-
-        Returns:
-            JSON with configuration
-        """
-        try:
-            if not request.env.user.has_group('ecommerce_seo_translator_pro.group_ecommerce_seo_ai'):
-                return {
-                    'success': False,
-                    'error': _('Permission denied'),
-                }
-
-            params = request.env['ir.config_parameter'].sudo()
-
-            return {
-                'success': True,
-                'batch_enabled': params.get_param('ecommerce_seo_translator_pro.batch_enabled', 'True') == 'True',
-                'async_enabled': params.get_param('ecommerce_seo_translator_pro.async_enabled', 'False') == 'True',
-                'default_tone': params.get_param('ecommerce_seo_translator_pro.default_tone', 'professional'),
-            }
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Error retrieving config: %s', str(e))
-            return {
-                'success': False,
-                'error': str(e),
-            }
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\controllers\__init__.py =====
-from . import website_controller
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\controllers\__pycache__\website_controller.cpython-312.pyc =====
-Ë
-
-    7•4i#  ã                   ó~   — d dl Z d dlZd dlmZmZ d dlmZ  e j                  e«      Z	 G d„ dej                  «      Zy)é    N)ÚhttpÚ_)Úrequestc                   ó$  — e Zd Z ej                  ddddg¬«      dedefd„«       Z ej                  d	dddg¬«      dd
-ede	defd„«       Z
- ej                  d
-dddg¬«      ddededefd„«       Z ej                  ddddg¬«      defd„«       Zy)ÚSEOAIWebsiteControllerz/seo-ai/meta-previewÚjsonÚuserÚPOST)ÚtypeÚauthÚmethodsÚ
-product_idÚreturnc                 ó.  — 	 t         j                  d   j                  |«      }|j                  «       sdt	        d«      dœS d|j
-                  xs |j                  t        |d«      r|j                  «       nd|› |j                  xs |j                  xs d|j                  xs d|j                  r|j                  j                  «       nd	d
-œ}|S # t        $ r7}t        j!                  dt#        |«      «       dt#        |«      dœcY d	}~S d	}~ww xY w)z¼
-        Get SERP preview (search engine results page snippet).
-
-        Args:
-            product_id: product.template ID
-
-        Returns:
-            JSON with meta-tag preview
-        úproduct.templateFzProduct not found©ÚsuccessÚerrorTÚget_absolute_urlz/shop/p/Ú N)r   ÚtitleÚurlÚdescriptionÚkeywordsÚlast_generatedz"[SEO-AI] Error in meta preview: %s)r   ÚenvÚbrowseÚexistsr   Ú
-meta_titleÚnameÚhasattrr   Úmeta_descriptionÚdescription_saleÚ
-meta_keywordsÚseo_last_generatedÚ	isoformatÚ	ExceptionÚ_loggerr   Ústr)Úselfr   ÚproductÚpreviewÚes        úP/mnt/extra-addons/ecommerce_seo_translator_pro/controllers/website_controller.pyÚget_meta_previewz'SEOAIWebsiteController.get_meta_preview   s  € ğ 	Ü—k‘kĞ"4Ñ5×<Ñ<¸ZÓHˆGà—>‘>Ô#à$ÜĞ2Ó3ñğ ğ  Ø ×+Ñ+Ò;¨w¯|©|Ü5<¸WĞFXÔ5Yw×/Ñ/Ô1ĞaiĞjtĞiuĞ_vØ&×7Ñ7ÒY¸7×;SÑ;SÒYĞWYØ#×1Ñ1Ò7°RØLS×LfÒLf '×"<Ñ"<×"FÑ"FÔ"HĞlpñ
-ˆGğ ˆNøäò 	ÜM‰MĞ>ÄÀAÃÔGà Ü˜Q›ñõ 
-ûğ	ús$   ‚?C ÁBC Ã	DÃ,DÄ	DÄDz/seo-ai/batch-generateÚproduct_idsÚactionc                 ód  — 	 t         j                  j                  j                  d«      sdt	        d«      dœS t         j                  d   j                  |«      }|dk(  r|j
-                  «        n:|dk(  r|j                  «        n$|dk(  r|j                  «        ndt	        d	«      dœS t        j                  d
-|t        |«      «       dt	        d«      t        |«      z  t        |«      d
-œS # t        $ r7}t        j                  dt        |«      «       dt        |«      dœcY d}~S d}~ww xY w)a  
-        Generate descriptions/meta-tags for multiple products.
-
-        Args:
-            product_ids: List of product.template IDs
-            action: 'description', 'meta_tags', or 'translate'
-
-        Returns:
-            JSON with batch operation status
-        ú3ecommerce_seo_translator_pro.group_ecommerce_seo_aiFúPermission deniedr   r   r   Ú	meta_tagsÚ	translatezUnknown actionz+[SEO-AI] Batch %s completed for %d productsTz*Batch generation completed for %d products)r   ÚmessageÚcountz#[SEO-AI] Batch generation error: %sN)r   r   r	   Ú	has_groupr   r   Úaction_generate_ai_descriptionÚaction_generate_meta_tagsÚaction_translate_descriptionsr(   ÚinfoÚlenr'   r   r)   )r*   r0   r1   Úproductsr-   s        r.   Úbatch_generate_descriptionsz2SEOAIWebsiteController.batch_generate_descriptions6   s$  € ğ""	Ü—;‘;×#Ñ#×-Ñ-Ğ.cÔdà$ÜĞ2Ó3ñğ ô
- —{‘{Ğ#5Ñ6×=Ñ=¸kÓJˆHà˜Ò&Ø×7Ñ7Õ9Ø˜;Ò&Ø×2Ñ2Õ4Ø˜;Ò&Ø×6Ñ6Õ8ğ  %ÜĞ/Ó0ñğ ô
- 
-L‰LĞFÈÔPSĞT_ÓP`Ôağ  ÜĞIÓJÌSĞQ\ÓM]Ñ]Ü˜[Ó)ñğ 
-øô ò 	ÜM‰MĞ?ÄÀQÃÔHà Ü˜Q›ñõ 
-ûğ	ús*   ‚6C/ ¹A1C/ Â+AC/ Ã/	D/Ã8,D*Ä$D/Ä*D/z/seo-ai/historyÚGETÚlimitc           
-      óä  — 	 t         j                  d   j                  dd|fg|d¬«      }g }|D ]n  }|j                  |j                  |j
-                  |j                  |j                  j                  «       |j                  j                  |j                  dœ«       Œp d|t        |«      dœS # t        $ r7}t        j                  d	t!        |«      «       d
-t!        |«      dœcY d}~S d}~ww xY w)
-z×
-        Get generation history for a product.
-
-        Args:
-            product_id: product.template ID
-            limit: Maximum records to return
-
-        Returns:
-            JSON with history records
-        zseo.ai.historyr   ú=zcreate_date desc)rB   Úorder)Úidr1   ÚstatusÚcreate_dater	   Úduration_msT)r   Úhistoryr8   z%[SEO-AI] Error retrieving history: %sFr   N)r   r   ÚsearchÚappendrF   r1   rG   rH   r&   Úuser_idr    rI   r>   r'   r(   r   r)   )r*   r   rB   Úhistory_recordsÚhistory_dataÚrecordr-   s          r.   Úget_generation_historyz-SEOAIWebsiteController.get_generation_historyk   só   € ğ"	Ü%Ÿk™kĞ*:Ñ;×BÑBØ  ZĞ0Ğ1ØØ(ğ Có ˆOğ ˆLØ)ò 
-Ø×#Ñ#Ø Ÿ)™)Ø$Ÿm™mØ$Ÿm™mØ#)×#5Ñ#5×#?Ñ#?Ó#AØ"ŸN™N×/Ñ/Ø#)×#5Ñ#5ñ
-%õ ğ
-ğ  Ø'Ü˜\Ó*ñğ 
-øô ò 	ÜM‰MĞAÄ3ÀqÃ6ÔJà Ü˜Q›ñõ 
-ûğ	ús   ‚B,B/ Â/	C/Â8,C*Ã$C/Ã*C/z/seo-ai/configc                 ó´  — 	 t         j                  j                  j                  d«      sdt	        d«      dœS t         j                  d   j                  «       }d|j
-                  dd«      dk(  |j
-                  d	d
-«      dk(  |j
-                  dd«      d
-œS # t        $ r7}t        j                  dt        |«      «       dt        |«      dœcY d}~S d}~ww xY w)zp
-        Get module configuration (for frontend).
-
-        Returns:
-            JSON with configuration
-        r3   Fr4   r   zir.config_parameterTz*ecommerce_seo_translator_pro.batch_enabledÚTruez*ecommerce_seo_translator_pro.async_enabledÚFalsez)ecommerce_seo_translator_pro.default_toneÚprofessional)r   Ú
-batch_enabledÚ
-async_enabledÚdefault_tonez$[SEO-AI] Error retrieving config: %sN)r   r   r	   r9   r   ÚsudoÚ	get_paramr'   r(   r   r)   )r*   Úparamsr-   s      r.   Ú
-get_configz!SEOAIWebsiteController.get_config›   sÚ   € ğ	Ü—;‘;×#Ñ#×-Ñ-Ğ.cÔdà$ÜĞ2Ó3ñğ ô
- —[‘[Ğ!6Ñ7×<Ñ<Ó>ˆFğ  Ø!'×!1Ñ!1Ğ2^Ğ`fÓ!gĞkqÑ!qØ!'×!1Ñ!1Ğ2^Ğ`gÓ!hĞlrÑ!rØ &× 0Ñ 0Ğ1\Ğ^lÓ mñ	ğ 
-øô ò 	ÜM‰MĞ@Ä#ÀaÃ&ÔIà Ü˜Q›ñõ 
-ûğ	ús#   ‚6B ¹AB Â	CÂ ,CÃCÃCN)r   )é
-   )
-Ú__name__Ú
-__module__Ú__qualname__r   ÚrouteÚintÚdictr/   Úlistr)   r@   rQ   r\   © ó    r.   r   r   	   s÷   „ à€T‡ZZØØ
-Ø
-Øô	ğ#¨3ğ #°4ò #ó
-ğ#ğJ €T‡ZZØ Ø
-Ø
-Øô	ñ-°tğ -ÀSğ -Ğ]aò -ó
-ğ-ğ^ €T‡ZZØØ
-Ø
-Øô	ñ(°ğ (¸Sğ (È$ò (ó
-ğ(ğT €T‡ZZØØ
-Ø
-Øô	ğ˜Dò ó
-ñrf   r   )Úloggingr   Úodoor   r   Ú	odoo.httpr   Ú	getLoggerr^   r(   Ú
-Controllerr   re   rf   r.   ú<module>rl      s5   ğÛ Û ß İ à
-ˆ'×
-Ñ
-˜HÓ
-%€ôt˜TŸ_™_õ trf   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\controllers\__pycache__\__init__.cpython-312.pyc =====
-Ë
-
-    -•4i"   ã                   ó   — d dl mZ y)é   )Úwebsite_controllerN)Ú r   © ó    úF/mnt/extra-addons/ecommerce_seo_translator_pro/controllers/__init__.pyú<module>r      s   ğŞ  r   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\data\demo_data.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data noupdate="1">
-
-        <!-- Demo Glossary Entries (Italian) -->
-        <record id="glossary_product_it_1" model="seo.ai.glossary">
-            <field name="term">product</field>
-            <field name="translation">prodotto</field>
-            <field name="language_code">it</field>
-            <field name="category">product</field>
-            <field name="notes">Basic product term</field>
-        </record>
-
-        <record id="glossary_product_it_2" model="seo.ai.glossary">
-            <field name="term">warranty</field>
-            <field name="translation">garanzia</field>
-            <field name="language_code">it</field>
-            <field name="category">product</field>
-            <field name="notes">Product warranty</field>
-        </record>
-
-        <record id="glossary_technical_it_1" model="seo.ai.glossary">
-            <field name="term">specification</field>
-            <field name="translation">specifica</field>
-            <field name="language_code">it</field>
-            <field name="category">technical</field>
-            <field name="notes">Technical specification</field>
-        </record>
-
-        <record id="glossary_brand_it_1" model="seo.ai.glossary">
-            <field name="term">premium</field>
-            <field name="translation">premium</field>
-            <field name="language_code">it</field>
-            <field name="category">brand</field>
-            <field name="notes">Brand positioning term</field>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\data\seo_cron_data.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data noupdate="1">
-
-        <!-- Cron job to cleanup old history records -->
-        <record id="seo_ai_history_cleanup_cron" model="ir.cron">
-            <field name="name">SEO AI - Cleanup Old History Records</field>
-            <field name="model_id" ref="model_seo_ai_history"/>
-            <field name="state">code</field>
-            <field name="code">model.cleanup_old_records(days=90)</field>
-            <field name="user_id" ref="base.user_root"/>
-            <field name="interval_number">1</field>
-            <field name="interval_type">weeks</field>
-            <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="True"/>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\ai_service.py =====
-import logging
-import json
-import hashlib
-import time
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timedelta
-
-from odoo import models, fields, api, _
-from odoo.exceptions import UserError
-
-try:
-    from openai import OpenAI, RateLimitError, APIError
-    HAS_OPENAI = True
-except ImportError:
-    HAS_OPENAI = False
-
-_logger = logging.getLogger(__name__)
-
-
-class AISEOService(models.AbstractModel):
-
-    _name = 'ai.seo.service'
-    _description = 'AI SEO Service - Text generation, translation, and meta-tags'
-
-    _circuit_breaker = {
-        'failed_count': 0,
-        'last_failure_time': None,
-        'is_open': False,
-    }
-    _rate_limit_data = {}
-
-    @api.model
-    def _get_client(self) -> Optional[OpenAI]:
-        """
-        Get OpenAI client with API key from configuration.
-
-        Returns:
-            OpenAI: Configured OpenAI client, or None if not configured
-        """
-        if not HAS_OPENAI:
-            _logger.error('[SEO-AI] OpenAI library not installed')
-            return None
-
-        api_key = self.env['ir.config_parameter'].sudo().get_param(
-            'ecommerce_seo_translator_pro.openai_api_key', ''
-        )
-
-        if not api_key:
-            _logger.warning('[SEO-AI] OpenAI API key not configured')
-            return None
-
-        return OpenAI(api_key=api_key)
-
-    def _check_circuit_breaker(self) -> bool:
-        """
-        Check if circuit breaker is open (too many failures).
-
-        Returns:
-            bool: True if circuit is open (fail fast), False if operational
-        """
-        if not self._circuit_breaker['is_open']:
-            return False
-
-        last_failure = self._circuit_breaker['last_failure_time']
-        if not last_failure:
-            return False
-
-        timeout_minutes = 5
-        if datetime.now() - last_failure > timedelta(minutes=timeout_minutes):
-            self._circuit_breaker['is_open'] = False
-            self._circuit_breaker['failed_count'] = 0
-            _logger.info('[SEO-AI] Circuit breaker reset')
-            return False
-
-        return True
-
-    def _record_failure(self) -> None:
-        """Record a failure and update circuit breaker state."""
-        self._circuit_breaker['failed_count'] += 1
-        self._circuit_breaker['last_failure_time'] = datetime.now()
-
-        if self._circuit_breaker['failed_count'] >= 5:
-            self._circuit_breaker['is_open'] = True
-            _logger.error(
-                '[SEO-AI] Circuit breaker opened after %d failures',
-                self._circuit_breaker['failed_count']
-            )
-
-    def _check_rate_limit(self, user_id: int) -> bool:
-        """
-        Check if user has exceeded rate limit (5 requests per minute).
-
-        Args:
-            user_id: Odoo user ID
-
-        Returns:
-            bool: True if rate limit exceeded, False if allowed
-        """
-        now = time.time()
-        user_key = f'user_{user_id}'
-
-        if user_key not in self._rate_limit_data:
-            self._rate_limit_data[user_key] = []
-
-        requests = self._rate_limit_data[user_key]
-        requests = [req_time for req_time in requests if now - req_time < 60]
-
-        if len(requests) >= 5:
-            _logger.warning(
-                '[SEO-AI] Rate limit exceeded for user %d',
-                user_id
-            )
-            return True
-
-        requests.append(now)
-        self._rate_limit_data[user_key] = requests
-        return False
-
-    def generate_description(
-        self,
-        product,
-        tone: str = 'professional',
-        word_count: int = 200,
-        keywords: Optional[List[str]] = None,
-    ) -> Dict[str, any]:
-        """
-        Generate SEO-optimized product description using AI.
-
-        Args:
-            product: product.template record
-            tone: Writing tone ('professional', 'casual', 'technical')
-            word_count: Target word count (150-250)
-            keywords: List of keywords to incorporate
-
-        Returns:
-            Dict with keys:
-                - success: bool
-                - description: str (generated HTML)
-                - meta_title: str
-                - meta_description: str
-                - bullets: List[str]
-                - raw_response: str
-                - error: str (if failed)
-        """
-        result = {
-            'success': False,
-            'description': '',
-            'meta_title': '',
-            'meta_description': '',
-            'bullets': [],
-            'raw_response': '',
-            'error': '',
-        }
-
-        if self._check_circuit_breaker():
-            result['error'] = _('AI service temporarily unavailable due to repeated failures. Please try again later.')
-            return result
-
-        if self._check_rate_limit(self.env.user.id):
-            result['error'] = _('Rate limit exceeded. Maximum 5 requests per minute.')
-            return result
-
-        client = self._get_client()
-        if not client:
-            result['error'] = _('OpenAI API key not configured.')
-            return result
-
-        try:
-            prompt = self._build_description_prompt(
-                product, tone, word_count, keywords
-            )
-
-            _logger.info('[SEO-AI] Calling OpenAI API for description generation')
-
-            response = client.chat.completions.create(
-                model='gpt-4',
-                messages=[{'role': 'user', 'content': prompt}],
-                temperature=0.7,
-                max_tokens=1000,
-                timeout=30,
-            )
-
-            raw_response = response.choices[0].message.content
-            result['raw_response'] = raw_response
-
-            parsed = self._parse_description_response(raw_response)
-            result.update(parsed)
-            result['success'] = True
-
-            self._record_success()
-
-            _logger.info('[SEO-AI] Description generation successful for product %d', product.id)
-
-        except RateLimitError as e:
-            _logger.warning('[SEO-AI] OpenAI rate limit: %s', str(e))
-            result['error'] = _('OpenAI API rate limit exceeded. Please try again in a few minutes.')
-            self._record_failure()
-
-        except APIError as e:
-            _logger.error('[SEO-AI] OpenAI API error: %s', str(e))
-            result['error'] = _('Error communicating with OpenAI API.')
-            self._record_failure()
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Unexpected error in description generation: %s', str(e))
-            result['error'] = _('Unexpected error during generation.')
-            self._record_failure()
-
-        return result
-
-    def translate_text(
-        self,
-        text: str,
-        source_lang: str,
-        target_lang: str,
-        glossary: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, any]:
-        """
-        Translate text while respecting glossary and brand style.
-
-        Args:
-            text: Text to translate
-            source_lang: Source language code (e.g., 'en')
-            target_lang: Target language code (e.g., 'it')
-            glossary: Dict of terms to preserve {'term_en': 'term_lang'}
-
-        Returns:
-            Dict with:
-                - success: bool
-                - translation: str
-                - raw_response: str
-                - error: str (if failed)
-        """
-        result = {
-            'success': False,
-            'translation': '',
-            'raw_response': '',
-            'error': '',
-        }
-
-        if self._check_circuit_breaker():
-            result['error'] = _('AI service temporarily unavailable.')
-            return result
-
-        if self._check_rate_limit(self.env.user.id):
-            result['error'] = _('Rate limit exceeded.')
-            return result
-
-        client = self._get_client()
-        if not client:
-            result['error'] = _('OpenAI API key not configured.')
-            return result
-
-        if not glossary:
-            glossary = {}
-
-        try:
-            prompt = self._build_translation_prompt(
-                text, source_lang, target_lang, glossary
-            )
-
-            _logger.info('[SEO-AI] Calling OpenAI API for translation')
-
-            response = client.chat.completions.create(
-                model='gpt-4',
-                messages=[{'role': 'user', 'content': prompt}],
-                temperature=0.3,
-                max_tokens=2000,
-                timeout=30,
-            )
-
-            translation = response.choices[0].message.content.strip()
-            result['success'] = True
-            result['translation'] = translation
-            result['raw_response'] = translation
-
-            self._record_success()
-
-            _logger.info('[SEO-AI] Translation successful')
-
-        except (RateLimitError, APIError) as e:
-            _logger.error('[SEO-AI] OpenAI error during translation: %s', str(e))
-            result['error'] = _('Error communicating with OpenAI API.')
-            self._record_failure()
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Unexpected error in translation: %s', str(e))
-            result['error'] = _('Unexpected error during translation.')
-            self._record_failure()
-
-        return result
-
-    def generate_meta_tags(self, product) -> Dict[str, any]:
-        """
-        Generate SEO meta-tags (title, description, keywords).
-
-        Args:
-            product: product.template record
-
-        Returns:
-            Dict with:
-                - success: bool
-                - meta_title: str (max 60 chars)
-                - meta_description: str (max 160 chars)
-                - meta_keywords: str (comma-separated, max 200 chars)
-                - raw_response: str
-                - error: str (if failed)
-        """
-        result = {
-            'success': False,
-            'meta_title': '',
-            'meta_description': '',
-            'meta_keywords': '',
-            'raw_response': '',
-            'error': '',
-        }
-
-        if self._check_circuit_breaker():
-            result['error'] = _('AI service temporarily unavailable.')
-            return result
-
-        if self._check_rate_limit(self.env.user.id):
-            result['error'] = _('Rate limit exceeded.')
-            return result
-
-        client = self._get_client()
-        if not client:
-            result['error'] = _('OpenAI API key not configured.')
-            return result
-
-        try:
-            prompt = self._build_meta_tags_prompt(product)
-
-            _logger.info('[SEO-AI] Calling OpenAI API for meta-tags generation')
-
-            response = client.chat.completions.create(
-                model='gpt-4',
-                messages=[{'role': 'user', 'content': prompt}],
-                temperature=0.7,
-                max_tokens=500,
-                timeout=30,
-            )
-
-            raw_response = response.choices[0].message.content
-            result['raw_response'] = raw_response
-
-            parsed = self._parse_meta_tags_response(raw_response)
-            result.update(parsed)
-            result['success'] = True
-
-            self._record_success()
-
-            _logger.info('[SEO-AI] Meta-tags generation successful')
-
-        except (RateLimitError, APIError) as e:
-            _logger.error('[SEO-AI] OpenAI error during meta-tags generation: %s', str(e))
-            result['error'] = _('Error communicating with OpenAI API.')
-            self._record_failure()
-
-        except Exception as e:
-            _logger.error('[SEO-AI] Unexpected error in meta-tags generation: %s', str(e))
-            result['error'] = _('Unexpected error during meta-tags generation.')
-            self._record_failure()
-
-        return result
-
-    def _build_description_prompt(
-        self,
-        product,
-        tone: str,
-        word_count: int,
-        keywords: Optional[List[str]],
-    ) -> str:
-        """Build the prompt for description generation."""
-        keywords_text = ', '.join(keywords) if keywords else 'not specified'
-
-        prompt = f"""You are a professional e-commerce copywriter specializing in SEO-optimized product descriptions.
-
-Generate an SEO-optimized product description for this product:
-
-**Product Name**: {product.name}
-**Category**: {product.categ_id.name if product.categ_id else 'Not specified'}
-**Current Description**: {product.description or 'Not provided'}
-**Technical Specifications**: {product.description_sale or 'Not provided'}
-
-**Requirements**:
-1. Write in {tone} tone
-2. Target word count: {word_count} words
-3. Incorporate these keywords naturally: {keywords_text}
-4. Make it persuasive and action-oriented
-5. Focus on customer benefits, not just features
-6. Include a compelling call-to-action
-7. Optimize for search engines (natural keyword placement)
-
-**Output Format** (JSON):
-{{
-    "description": "Main product description (HTML formatted with <p>, <ul>, <li>)",
-    "bullets": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
-    "meta_title": "SEO title (max 60 chars)",
-    "meta_description": "SEO meta description (max 160 chars)"
-}}
-
-Generate the description now:"""
-        return prompt
-
-    def _parse_description_response(self, response: str) -> Dict[str, any]:
-        """Parse JSON response from description generation."""
-        try:
-            cleaned = response.strip()
-            if cleaned.startswith('```json'):
-                cleaned = cleaned[7:]
-            if cleaned.startswith('```'):
-                cleaned = cleaned[3:]
-            if cleaned.endswith('```'):
-                cleaned = cleaned[:-3]
-
-            data = json.loads(cleaned)
-
-            return {
-                'description': data.get('description', ''),
-                'bullets': data.get('bullets', []),
-                'meta_title': data.get('meta_title', '')[:60],
-                'meta_description': data.get('meta_description', '')[:160],
-            }
-
-        except json.JSONDecodeError:
-            _logger.warning('[SEO-AI] Failed to parse description response as JSON')
-            return {
-                'description': response,
-                'bullets': [],
-                'meta_title': '',
-                'meta_description': '',
-            }
-
-    def _build_translation_prompt(
-        self,
-        text: str,
-        source_lang: str,
-        target_lang: str,
-        glossary: Dict[str, str],
-    ) -> str:
-        """Build the prompt for translation."""
-        glossary_text = '\n'.join(
-            [f"- {src}: {tgt}" for src, tgt in glossary.items()]
-        ) if glossary else "None"
-
-        prompt = f"""Translate this e-commerce product text from {source_lang} to {target_lang}.
-
-**Text to translate**:
-{text}
-
-**Glossary** (must be preserved exactly):
-{glossary_text}
-
-**Requirements**:
-1. Preserve all terms in the glossary
-2. Maintain professional tone for e-commerce
-3. Keep HTML tags unchanged
-4. Keep SEO context intact
-5. Do NOT add explanations, only provide the translation
-
-Translation:"""
-        return prompt
-
-    def _build_meta_tags_prompt(self, product) -> str:
-        """Build the prompt for meta-tags generation."""
-        prompt = f"""Generate SEO-optimized meta-tags for this product:
-
-**Product Name**: {product.name}
-**Category**: {product.categ_id.name if product.categ_id else 'Unknown'}
-**Description**: {product.description or 'Not available'}
-
-**Output Format** (JSON):
-{{
-    "meta_title": "Compelling SEO title (max 60 characters)",
-    "meta_description": "Engaging meta description (max 160 characters)",
-    "meta_keywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
-}}
-
-**Requirements**:
-- Meta title: Include main keyword, max 60 chars
-- Meta description: Action-oriented, max 160 chars, include main keyword
-- Meta keywords: 3-5 most relevant keywords
-
-Generate the meta-tags:"""
-        return prompt
-
-    def _parse_meta_tags_response(self, response: str) -> Dict[str, any]:
-        """Parse JSON response from meta-tags generation."""
-        try:
-            cleaned = response.strip()
-            if cleaned.startswith('```json'):
-                cleaned = cleaned[7:]
-            if cleaned.startswith('```'):
-                cleaned = cleaned[3:]
-            if cleaned.endswith('```'):
-                cleaned = cleaned[:-3]
-
-            data = json.loads(cleaned)
-
-            return {
-                'meta_title': data.get('meta_title', '')[:60],
-                'meta_description': data.get('meta_description', '')[:160],
-                'meta_keywords': data.get('meta_keywords', '')[:200],
-            }
-
-        except json.JSONDecodeError:
-            _logger.warning('[SEO-AI] Failed to parse meta-tags response as JSON')
-            return {
-                'meta_title': '',
-                'meta_description': '',
-                'meta_keywords': '',
-            }
-
-    def _record_success(self) -> None:
-        """Reset failure counters on successful request."""
-        self._circuit_breaker['failed_count'] = 0
-        self._circuit_breaker['last_failure_time'] = None
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\glossary.py =====
-import logging
-from typing import Dict
-from odoo import models, fields, api, _
-
-_logger = logging.getLogger(__name__)
-
-
-class SEOAIGlossary(models.Model):
-
-    _name = 'seo.ai.glossary'
-    _description = 'SEO AI Glossary - Technical terms for translation'
-    _order = 'language_code, term asc'
-
-    term = fields.Char(
-        string=_('English Term'),
-        required=True,
-        help=_('Original English term'),
-    )
-
-    translation = fields.Char(
-        string=_('Translation'),
-        required=True,
-        help=_('Translated term'),
-    )
-
-    language_code = fields.Char(
-        string=_('Language Code'),
-        required=True,
-        help=_('Target language code (e.g., it, es, fr)'),
-    )
-
-    category = fields.Selection(
-        selection=[
-            ('product', _('Product')),
-            ('technical', _('Technical')),
-            ('marketing', _('Marketing')),
-            ('brand', _('Brand')),
-        ],
-        string=_('Category'),
-        default='product',
-    )
-
-    notes = fields.Text(
-        string=_('Notes'),
-        help=_('Usage notes or context'),
-    )
-
-    active = fields.Boolean(
-        string=_('Active'),
-        default=True,
-    )
-
-    _sql_constraints = [
-        (
-            'unique_term_language',
-            'unique(term, language_code)',
-            _('This term already exists for this language'),
-        ),
-    ]
-
-    @api.model
-    def _get_glossary_for_language(self, language_code: str) -> Dict[str, str]:
-        """
-        Get glossary dictionary for a specific language.
-
-        Args:
-            language_code: Language code (e.g., 'it', 'es')
-
-        Returns:
-            Dict mapping English terms to translations
-        """
-        glossary_records = self.search([
-            ('language_code', '=', language_code),
-            ('active', '=', True),
-        ])
-
-        glossary_dict = {}
-        for record in glossary_records:
-            glossary_dict[record.term] = record.translation
-
-        _logger.info(
-            '[SEO-AI] Loaded %d glossary terms for language %s',
-            len(glossary_dict), language_code
-        )
-
-        return glossary_dict
-
-    @api.model
-    def _get_all_glossaries(self) -> Dict[str, Dict[str, str]]:
-        """
-        Get all glossaries organized by language.
-
-        Returns:
-            Dict mapping language codes to term dictionaries
-        """
-        glossary_records = self.search([('active', '=', True)])
-
-        glossaries = {}
-        for record in glossary_records:
-            if record.language_code not in glossaries:
-                glossaries[record.language_code] = {}
-
-            glossaries[record.language_code][record.term] = record.translation
-
-        return glossaries
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\history.py =====
-import logging
-from odoo import models, fields, api, _
-
-_logger = logging.getLogger(__name__)
-
-
-class SEOAIHistory(models.Model):
-
-    _name = 'seo.ai.history'
-    _description = 'SEO AI Generation History'
-    _order = 'create_date desc'
-    _rec_name = 'action'
-
-    product_id = fields.Many2one(
-        'product.template',
-        string=_('Product'),
-        required=True,
-        ondelete='cascade',
-    )
-
-    action = fields.Selection(
-        selection=[
-            ('description_generation', _('Description Generation')),
-            ('translation', _('Translation')),
-            ('meta_tags_generation', _('Meta-Tags Generation')),
-        ],
-        string=_('Action'),
-        required=True,
-    )
-
-    status = fields.Selection(
-        selection=[
-            ('success', _('Success')),
-            ('error', _('Error')),
-            ('pending', _('Pending')),
-        ],
-        string=_('Status'),
-        default='pending',
-    )
-
-    input_hash = fields.Char(
-        string=_('Input Hash (GDPR)'),
-        help=_('SHA256 hash of input for privacy'),
-    )
-
-    output = fields.Text(
-        string=_('Output / Result'),
-        help=_('Generated content or error message'),
-    )
-
-    user_id = fields.Many2one(
-        'res.users',
-        string=_('User'),
-        default=lambda self: self.env.user,
-        readonly=True,
-    )
-
-    target_language = fields.Char(
-        string=_('Target Language'),
-        help=_('Target language for translations'),
-    )
-
-    duration_ms = fields.Integer(
-        string=_('Duration (milliseconds)'),
-        help=_('Execution time in milliseconds'),
-    )
-
-    api_call_cost = fields.Float(
-        string=_('API Call Cost (USD)'),
-        help=_('Estimated cost from OpenAI API'),
-    )
-
-    create_date = fields.Datetime(
-        string=_('Creation Date'),
-        readonly=True,
-    )
-
-    def unlink(self):
-        """
-        Delete history records.
-
-        Only managers can delete history.
-        """
-        if not self.env.user.has_group('base.group_system'):
-            raise UserError(_('Only managers can delete history'))
-
-        return super().unlink()
-
-    @api.model
-    def get_stats_by_product(self, product_id: int) -> dict:
-        """
-        Get statistics for a product.
-
-        Args:
-            product_id: Product template ID
-
-        Returns:
-            Dict with statistics
-        """
-        records = self.search([
-            ('product_id', '=', product_id),
-        ])
-
-        stats = {
-            'total_actions': len(records),
-            'successful': len(records.filtered(lambda r: r.status == 'success')),
-            'errors': len(records.filtered(lambda r: r.status == 'error')),
-            'by_action': {},
-        }
-
-        for action_type in ['description_generation', 'translation', 'meta_tags_generation']:
-            action_records = records.filtered(lambda r: r.action == action_type)
-            stats['by_action'][action_type] = {
-                'total': len(action_records),
-                'successful': len(action_records.filtered(lambda r: r.status == 'success')),
-                'errors': len(action_records.filtered(lambda r: r.status == 'error')),
-            }
-
-        return stats
-
-    @api.model
-    def cleanup_old_records(self, days: int = 90) -> int:
-        """
-        Delete history records older than specified days.
-
-        Args:
-            days: Number of days to keep (default 90)
-
-        Returns:
-            int: Number of deleted records
-        """
-        from datetime import datetime, timedelta
-
-        cutoff_date = datetime.now() - timedelta(days=days)
-
-        old_records = self.search([
-            ('create_date', '<', cutoff_date),
-        ])
-
-        count = len(old_records)
-        old_records.unlink()
-
-        _logger.info('[SEO-AI] Cleaned up %d history records older than %d days', count, days)
-
-        return count
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\product_template.py =====
-import logging
-from odoo import models, fields, api, _
-from odoo.exceptions import UserError
-
-_logger = logging.getLogger(__name__)
-
-
-class ProductTemplate(models.Model):
-
-    _inherit = 'product.template'
-
-    technical_specifications = fields.Text(
-        string=_('Technical Specifications'),
-        help=_('Detailed technical specs for AI description generation'),
-    )
-
-    ai_generated_description = fields.Html(
-        string=_('AI Generated Description'),
-        readonly=True,
-        help=_('Description generated by AI'),
-    )
-
-    ai_generation_status = fields.Selection(
-        selection=[
-            ('draft', _('Draft')),
-            ('generated', _('Generated')),
-            ('error', _('Error')),
-        ],
-        default='draft',
-        readonly=True,
-    )
-
-    ai_description_tone = fields.Selection(
-        selection=[
-            ('professional', _('Professional')),
-            ('casual', _('Casual')),
-            ('technical', _('Technical')),
-        ],
-        default='professional',
-        string=_('Description Tone'),
-    )
-
-    ai_description_word_count = fields.Integer(
-        string=_('Target Word Count'),
-        default=200,
-        help=_('Target words for generated description (150-250)'),
-    )
-
-    ai_keywords = fields.Char(
-        string=_('Keywords for Generation'),
-        help=_('Comma-separated keywords to incorporate'),
-    )
-
-    ai_generated_keywords = fields.Char(
-        string=_('Suggested Keywords'),
-        readonly=True,
-        help=_('Keywords suggested by AI'),
-    )
-
-    meta_title = fields.Char(
-        string=_('Meta Title'),
-        size=60,
-        help=_('SEO meta title (max 60 chars)'),
-    )
-
-    meta_description = fields.Char(
-        string=_('Meta Description'),
-        size=160,
-        help=_('SEO meta description (max 160 chars)'),
-    )
-
-    meta_keywords = fields.Char(
-        string=_('Meta Keywords'),
-        size=200,
-        help=_('SEO keywords (max 200 chars)'),
-    )
-
-    ai_generation_log = fields.Text(
-        string=_('Generation Log'),
-        readonly=True,
-    )
-
-    seo_last_generated = fields.Datetime(
-        string=_('Last SEO Generation'),
-        readonly=True,
-    )
-
-    def action_generate_ai_description(self):
-        """
-        Generate SEO description using AI.
-
-        Called by button in product form.
-        """
-        service = self.env['ai.seo.service']
-
-        for product in self:
-            if not product.name:
-                raise UserError(_('Product name is required'))
-
-            _logger.info('[SEO-AI] Generating description for product %s', product.name)
-
-            result = service.generate_description(
-                product,
-                tone=product.ai_description_tone or 'professional',
-                word_count=product.ai_description_word_count or 200,
-                keywords=[k.strip() for k in (product.ai_keywords or '').split(',') if k.strip()],
-            )
-
-            if result['success']:
-                product.write({
-                    'ai_generated_description': result['description'],
-                    'meta_title': result.get('meta_title', ''),
-                    'meta_description': result.get('meta_description', ''),
-                    'ai_generation_status': 'generated',
-                    'seo_last_generated': fields.Datetime.now(),
-                    'ai_generation_log': result['raw_response'],
-                })
-
-                self.env['seo.ai.history'].create({
-                    'product_id': product.id,
-                    'action': 'description_generation',
-                    'status': 'success',
-                    'input_hash': self._hash_input(product.name),
-                    'output': result['description'],
-                    'user_id': self.env.user.id,
-                })
-
-                _logger.info('[SEO-AI] Description generated successfully for %s', product.name)
-
-            else:
-                product.write({
-                    'ai_generation_status': 'error',
-                    'ai_generation_log': result.get('error', 'Unknown error'),
-                })
-
-                self.env['seo.ai.history'].create({
-                    'product_id': product.id,
-                    'action': 'description_generation',
-                    'status': 'error',
-                    'input_hash': self._hash_input(product.name),
-                    'output': result.get('error', ''),
-                    'user_id': self.env.user.id,
-                })
-
-                raise UserError(_('Description generation failed: %s') % result.get('error', ''))
-
-    def action_translate_descriptions(self):
-        """
-        Translate descriptions to all active languages.
-
-        Uses glossary if configured.
-        """
-        service = self.env['ai.seo.service']
-        current_lang = self.env.lang
-
-        for product in self:
-            for language in self.env['res.lang'].search([('active', '=', True)]):
-                if language.code == current_lang:
-                    continue
-
-                text_to_translate = product.description or ''
-                if not text_to_translate:
-                    continue
-
-                glossary_dict = self.env['seo.ai.glossary']._get_glossary_for_language(
-                    language.code
-                )
-
-                _logger.info(
-                    '[SEO-AI] Translating product %s to %s',
-                    product.name, language.code
-                )
-
-                result = service.translate_text(
-                    text=text_to_translate,
-                    source_lang=current_lang,
-                    target_lang=language.code,
-                    glossary=glossary_dict,
-                )
-
-                if result['success']:
-                    product.with_context(lang=language.code).write({
-                        'description': result['translation'],
-                    })
-
-                    self.env['seo.ai.history'].create({
-                        'product_id': product.id,
-                        'action': 'translation',
-                        'status': 'success',
-                        'input_hash': self._hash_input(text_to_translate),
-                        'output': result['translation'],
-                        'user_id': self.env.user.id,
-                        'target_language': language.code,
-                    })
-
-                    _logger.info('[SEO-AI] Translation successful for %s', language.code)
-
-                else:
-                    self.env['seo.ai.history'].create({
-                        'product_id': product.id,
-                        'action': 'translation',
-                        'status': 'error',
-                        'input_hash': self._hash_input(text_to_translate),
-                        'output': result.get('error', ''),
-                        'user_id': self.env.user.id,
-                        'target_language': language.code,
-                    })
-
-                    _logger.warning('[SEO-AI] Translation failed for %s', language.code)
-
-    def action_generate_meta_tags(self):
-        """
-        Generate SEO meta-tags using AI.
-        """
-        service = self.env['ai.seo.service']
-
-        for product in self:
-            if not product.name:
-                raise UserError(_('Product name is required'))
-
-            _logger.info('[SEO-AI] Generating meta-tags for %s', product.name)
-
-            result = service.generate_meta_tags(product)
-
-            if result['success']:
-                product.write({
-                    'meta_title': result.get('meta_title', ''),
-                    'meta_description': result.get('meta_description', ''),
-                    'meta_keywords': result.get('meta_keywords', ''),
-                    'seo_last_generated': fields.Datetime.now(),
-                    'ai_generation_log': result['raw_response'],
-                })
-
-                self.env['seo.ai.history'].create({
-                    'product_id': product.id,
-                    'action': 'meta_tags_generation',
-                    'status': 'success',
-                    'input_hash': self._hash_input(product.name),
-                    'output': f"Title: {result.get('meta_title', '')}, Description: {result.get('meta_description', '')}",
-                    'user_id': self.env.user.id,
-                })
-
-                _logger.info('[SEO-AI] Meta-tags generated successfully for %s', product.name)
-
-            else:
-                self.env['seo.ai.history'].create({
-                    'product_id': product.id,
-                    'action': 'meta_tags_generation',
-                    'status': 'error',
-                    'input_hash': self._hash_input(product.name),
-                    'output': result.get('error', ''),
-                    'user_id': self.env.user.id,
-                })
-
-                raise UserError(_('Meta-tags generation failed: %s') % result.get('error', ''))
-
-    def _hash_input(self, text: str) -> str:
-        """
-        Hash input for privacy (GDPR compliant).
-
-        Args:
-            text: Text to hash
-
-        Returns:
-            str: SHA256 hash
-        """
-        import hashlib
-        return hashlib.sha256(text.encode()).hexdigest()
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\seo_config.py =====
-import logging
-from odoo import models, fields, api, _
-
-_logger = logging.getLogger(__name__)
-
-
-class SEOAIConfig(models.Model):
-
-    _name = 'seo.ai.config'
-    _description = 'SEO AI Configuration'
-    _inherit = ['res.config.settings']
-
-    ai_provider = fields.Selection(
-        selection=[
-            ('openai', 'OpenAI (GPT-4)'),
-            ('mock', 'Mock (Testing)'),
-        ],
-        default='openai',
-        required=True,
-        string=_('AI Provider'),
-    )
-
-    openai_api_key = fields.Char(
-        string=_('OpenAI API Key'),
-        help=_('API key from platform.openai.com'),
-    )
-
-    default_description_tone = fields.Selection(
-        selection=[
-            ('professional', _('Professional')),
-            ('casual', _('Casual')),
-            ('technical', _('Technical')),
-        ],
-        default='professional',
-        string=_('Default Description Tone'),
-    )
-
-    default_word_count = fields.Integer(
-        string=_('Default Word Count'),
-        default=200,
-        help=_('Default target words for descriptions (150-250)'),
-    )
-
-    enable_rate_limiting = fields.Boolean(
-        string=_('Enable Rate Limiting'),
-        default=True,
-        help=_('Limit to 5 requests per minute per user'),
-    )
-
-    enable_async_generation = fields.Boolean(
-        string=_('Enable Async Generation'),
-        default=False,
-        help=_('Use background jobs (requires queue_job)'),
-    )
-
-    batch_generation_enabled = fields.Boolean(
-        string=_('Enable Batch Generation'),
-        default=True,
-        help=_('Allow generating for multiple products'),
-    )
-
-    gdpr_mask_content = fields.Boolean(
-        string=_('GDPR: Mask Content in Logs'),
-        default=True,
-        help=_('Hash sensitive content for privacy compliance'),
-    )
-
-    request_timeout_seconds = fields.Integer(
-        string=_('API Request Timeout (seconds)'),
-        default=30,
-        help=_('Timeout for OpenAI API calls'),
-    )
-
-    @api.model
-    def get_values(self):
-        """Get current configuration values."""
-        res = super().get_values()
-        params = self.env['ir.config_parameter'].sudo()
-
-        res['openai_api_key'] = params.get_param('ecommerce_seo_translator_pro.openai_api_key', '')
-        res['default_description_tone'] = params.get_param('ecommerce_seo_translator_pro.default_tone', 'professional')
-        res['default_word_count'] = int(params.get_param('ecommerce_seo_translator_pro.word_count', '200'))
-        res['enable_rate_limiting'] = params.get_param('ecommerce_seo_translator_pro.rate_limiting', 'True') == 'True'
-        res['enable_async_generation'] = params.get_param('ecommerce_seo_translator_pro.async_enabled', 'False') == 'True'
-        res['batch_generation_enabled'] = params.get_param('ecommerce_seo_translator_pro.batch_enabled', 'True') == 'True'
-        res['gdpr_mask_content'] = params.get_param('ecommerce_seo_translator_pro.gdpr_mask', 'True') == 'True'
-        res['request_timeout_seconds'] = int(params.get_param('ecommerce_seo_translator_pro.timeout', '30'))
-
-        return res
-
-    def set_values(self):
-        """Save configuration values."""
-        super().set_values()
-        params = self.env['ir.config_parameter'].sudo()
-
-        if self.openai_api_key:
-            params.set_param('ecommerce_seo_translator_pro.openai_api_key', self.openai_api_key)
-
-        params.set_param('ecommerce_seo_translator_pro.default_tone', self.default_description_tone)
-        params.set_param('ecommerce_seo_translator_pro.word_count', str(self.default_word_count))
-        params.set_param('ecommerce_seo_translator_pro.rate_limiting', str(self.enable_rate_limiting))
-        params.set_param('ecommerce_seo_translator_pro.async_enabled', str(self.enable_async_generation))
-        params.set_param('ecommerce_seo_translator_pro.batch_enabled', str(self.batch_generation_enabled))
-        params.set_param('ecommerce_seo_translator_pro.gdpr_mask', str(self.gdpr_mask_content))
-        params.set_param('ecommerce_seo_translator_pro.timeout', str(self.request_timeout_seconds))
-
-        _logger.info('[SEO-AI] Configuration saved')
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__init__.py =====
-from . import ai_service
-from . import product_template
-from . import seo_config
-from . import glossary
-from . import history
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\ai_service.cpython-312.pyc =====
-Ë
-
-    zX5i$B  ã                   óò   — d dl Z d dlZd dlZd dlZd dlmZmZmZmZ d dl	m	Z	m
-Z
- d dlmZm
-Z
-mZmZ d dlmZ 	 d dlmZmZmZ dZ e j0                  e«      Z G d	„ d
-ej6                  «      Zy# e$ r dZY Œ1w xY w)é    N)ÚDictÚListÚOptionalÚTuple)ÚdatetimeÚ	timedelta)ÚmodelsÚfieldsÚapiÚ_)Ú	UserError)ÚOpenAIÚRateLimitErrorÚAPIErrorTFc            
-       ó  — e Zd ZdZdZddddœZi Zej                  de	e
-   fd„«       Zdefd	„Z
-dd
-„Zdedefd„Z	 	 	 dd
-edede	ee      deeef   fd„Z	 d dededede	eeef      deeef   f
-d„Zdeeef   fd„Zd
-edede	ee      defd„Zdedeeef   fd„Zdedededeeef   def
-d„Zdefd„Zdedeeef   fd„Zdd„Zy)!ÚAISEOServicezai.seo.servicez<AI SEO Service - Text generation, translation, and meta-tagsr   NF)Úfailed_countÚlast_failure_timeÚis_openÚreturnc                 óÜ   — t         st        j                  d«       y| j                  d   j	                  «       j                  dd«      }|st        j
-                  d«       yt        |¬«      S )z
-        Get OpenAI client with API key from configuration.
-
-        Returns:
-            OpenAI: Configured OpenAI client, or None if not configured
-        z%[SEO-AI] OpenAI library not installedNzir.config_parameterz+ecommerce_seo_translator_pro.openai_api_keyÚ z&[SEO-AI] OpenAI API key not configured)Úapi_key)Ú
-HAS_OPENAIÚ_loggerÚerrorÚenvÚsudoÚ	get_paramÚwarningr   )Úselfr   s     úC/mnt/extra-addons/ecommerce_seo_translator_pro/models/ai_service.pyÚ_get_clientzAISEOService._get_client    s_   € õ ÜM‰MĞAÔBØà—(‘(Ğ0Ñ1×6Ñ6Ó8×BÑBØ9¸2ó
-ˆñ ÜO‰OĞDÔEØä˜gÔ&Ğ&ó    c                 óü   — | j                   d   sy| j                   d   }|syd}t        j                  «       |z
-  t        |¬«      kD  r4d| j                   d<   d| j                   d<   t        j                  d«       yy	)
-z¥
-        Check if circuit breaker is open (too many failures).
-
-        Returns:
-            bool: True if circuit is open (fail fast), False if operational
-        r   Fr   é   )Úminutesr   r   z[SEO-AI] Circuit breaker resetT)Ú_circuit_breakerr   Únowr   r   Úinfo)r!   Úlast_failureÚtimeout_minutess      r"   Ú_check_circuit_breakerz#AISEOService._check_circuit_breaker6   s|   € ğ ×$Ñ$ YÒ/Øà×,Ñ,Ğ-@ÑAˆÙØàˆÜ<‰<‹>˜LÑ(¬9¸_Ô+MÒMØ/4ˆD×!Ñ! )Ñ,Ø45ˆD×!Ñ! .Ñ1ÜL‰LĞ9Ô:Øàr$   c                 óş   — | j                   dxx   dz
-  cc<   t        j                  «       | j                   d<   | j                   d   dk\  r3d| j                   d<   t        j	                  d| j                   d   «       yy)	z2Record a failure and update circuit breaker state.r   é   r   r&   Tr   z1[SEO-AI] Circuit breaker opened after %d failuresN)r(   r   r)   r   r   ©r!   s    r"   Ú_record_failurezAISEOService._record_failureM   st   € à×Ñ˜nÓ-°Ñ2Ó-Ü5=·\±\³^ˆ×ÑĞ1Ñ2à× Ñ  Ñ0°AÒ5Ø/3ˆD×!Ñ! )Ñ,ÜM‰MØCØ×%Ñ% nÑ5õ
-ğ 6r$   Úuser_idc                 óR  — t        j                   «       }d|› }|| j                  vrg | j                  |<   | j                  |   }|D cg c]
-  }||z
-  dk  sŒ|‘Œ }}t        |«      dk\  rt        j	                  d|«       y|j                  |«       || j                  |<   yc c}w )zÓ
-        Check if user has exceeded rate limit (5 requests per minute).
-
-        Args:
-            user_id: Odoo user ID
-
-        Returns:
-            bool: True if rate limit exceeded, False if allowed
-        Úuser_é<   r&   z([SEO-AI] Rate limit exceeded for user %dTF)ÚtimeÚ_rate_limit_dataÚlenr   r    Úappend)r!   r2   r)   Úuser_keyÚrequestsÚreq_times         r"   Ú_check_rate_limitzAISEOService._check_rate_limitY   s¯   € ô i‰i‹kˆØ˜7˜)Ğ$ˆà˜4×0Ñ0Ñ0Ø.0ˆD×!Ñ! (Ñ+à×(Ñ(¨Ñ2ˆØ-5ÖM ¸¸x¹È"Ó9L’HĞMˆĞMäˆx‹=˜AÒÜO‰OØ:Øô
-ğ à‰˜ÔØ*2ˆ×Ñ˜hÑ'Øùò Ns   Á
-
-B$ÁB$ÚtoneÚ
-word_countÚkeywordsc                 ó®  — ddddg dddœ}| j                  «       rt        d«      |d<   |S | j                  | j                  j                  j
-                  «      rt        d«      |d<   |S | j
-                  «       }|st        d«      |d<   |S 	 | j                  ||||«      }t        j                  d«       |j                  j                  j                  d	d
-|dœgdd
-d¬«      }|j                  d   j                  j                  }	|	|d<   | j!                  |	«      }
-|j#                  |
-«       d|d<   | j%                  «        t        j                  d|j
-                  «       |S # t&        $ rH}t        j)                  dt+        |«      «       t        d«      |d<   | j-                  «        Y d}~|S d}~wt.        $ rH}t        j1                  dt+        |«      «       t        d«      |d<   | j-                  «        Y d}~|S d}~wt2        $ rH}t        j1                  dt+        |«      «       t        d«      |d<   | j-                  «        Y d}~|S d}~ww xY w)aq  
-        Generate SEO-optimized product description using AI.
-
-        Args:
-            product: product.template record
-            tone: Writing tone ('professional', 'casual', 'technical')
-            word_count: Target word count (150-250)
-            keywords: List of keywords to incorporate
-
-        Returns:
-            Dict with keys:
-                - success: bool
-                - description: str (generated HTML)
-                - meta_title: str
-                - meta_description: str
-                - bullets: List[str]
-                - raw_response: str
-                - error: str (if failed)
-        Fr   )ÚsuccessÚdescriptionÚ
-meta_titleÚmeta_descriptionÚbulletsÚraw_responser   zTAI service temporarily unavailable due to repeated failures. Please try again later.r   z3Rate limit exceeded. Maximum 5 requests per minute.úOpenAI API key not configured.z6[SEO-AI] Calling OpenAI API for description generationúgpt-4Úuser©ÚroleÚcontentçffffffæ?iè  é   ©ÚmodelÚmessagesÚtemperatureÚ
-max_tokensÚtimeoutr   rG   TrB   z9[SEO-AI] Description generation successful for product %dz[SEO-AI] OpenAI rate limit: %szBOpenAI API rate limit exceeded. Please try again in a few minutes.Nz[SEO-AI] OpenAI API error: %sú$Error communicating with OpenAI API.z7[SEO-AI] Unexpected error in description generation: %sz#Unexpected error during generation.)r-   r   r=   r   rJ   Úidr#   Ú_build_description_promptr   r*   ÚchatÚcompletionsÚcreateÚchoicesÚmessagerM   Ú_parse_description_responseÚupdateÚ_record_successr   r    Ústrr1   r   r   Ú	Exception)r!   Úproductr>   r?   r@   ÚresultÚclientÚpromptÚresponserG   ÚparsedÚes               r"   Úgenerate_descriptionz!AISEOService.generate_descriptionw   sB  € ğ6 ØØØ "ØØØñ
-ˆğ ×&Ñ&Ô(ÜĞ vÓwˆF7‰OØˆMà×!Ñ! $§(¡(§-¡-×"2Ñ"2Ô3ÜĞ UÓVˆF7‰OØˆMà×!Ñ!Ó#ˆÙÜĞ @ÓAˆF7‰OØˆMğ'	#Ø×3Ñ3Ø˜˜z¨8óˆFô 
-L‰LĞQÔRà—{‘{×.Ñ.×5Ñ5ØØ#)°fÑ=Ğ>ØØØğ 6ó ˆHğ $×+Ñ+¨AÑ.×6Ñ6×>Ñ>ˆLØ%1ˆF>Ñ"à×5Ñ5°lÓCˆFØM‰M˜&Ô!Ø $ˆF9Ñà× Ñ Ô"äL‰LĞTĞV]×V`ÑV`Ôağ" ˆ
-øô ò 	#ÜO‰OĞ<¼cÀ!»fÔEÜĞ dÓeˆF7‰OØ× Ñ ×"Ğ"ğ ˆ
-ûô ò 	#ÜM‰MĞ9¼3¸q»6ÔBÜĞ FÓGˆF7‰OØ× Ñ ×"Ğ"ğ ˆ
-ûô ò 	#ÜM‰MĞSÔUXĞYZÓU[Ô\ÜĞ EÓFˆF7‰OØ× Ñ ×"Ğ"àˆ
-ûğ	#ús1   Â
-CE% Å%	IÅ.=F1Æ1IÆ==H È IÈ=IÉIÚtextÚsource_langÚtarget_langÚglossaryc                 óê  — dddddœ}| j                  «       rt        d«      |d<   |S | j                  | j                  j                  j
-                  «      rt        d«      |d<   |S | j
-                  «       }|st        d«      |d<   |S |si }	 | j                  ||||«      }t        j                  d«       |j                  j                  j                  d	d
-|dœgdd
-d¬«      }|j                  d   j                  j                  j!                  «       }	d|d<   |	|d<   |	|d<   | j#                  «        t        j                  d«       |S # t$        t&        f$ rH}
-t        j)                  dt+        |
-«      «       t        d«      |d<   | j-                  «        Y d}
-~
-|S d}
-~
-wt.        $ rH}
-t        j)                  dt+        |
-«      «       t        d«      |d<   | j-                  «        Y d}
-~
-|S d}
-~
-ww xY w)aö  
-        Translate text while respecting glossary and brand style.
-
-        Args:
-            text: Text to translate
-            source_lang: Source language code (e.g., 'en')
-            target_lang: Target language code (e.g., 'it')
-            glossary: Dict of terms to preserve {'term_en': 'term_lang'}
-
-        Returns:
-            Dict with:
-                - success: bool
-                - translation: str
-                - raw_response: str
-                - error: str (if failed)
-        Fr   )rB   ÚtranslationrG   r   ú#AI service temporarily unavailable.r   úRate limit exceeded.rH   z+[SEO-AI] Calling OpenAI API for translationrI   rJ   rK   g333333Ó?iĞ  rO   rP   r   TrB   rp   rG   z[SEO-AI] Translation successfulz,[SEO-AI] OpenAI error during translation: %srV   Nz,[SEO-AI] Unexpected error in translation: %sz$Unexpected error during translation.)r-   r   r=   r   rJ   rW   r#   Ú_build_translation_promptr   r*   rY   rZ   r[   r\   r]   rM   Ústripr`   r   r   r   ra   r1   rb   )r!   rk   rl   rm   rn   rd   re   rf   rg   rp   ri   s              r"   Útranslate_textzAISEOService.translate_textÓ   sî  € ğ0 ØØØñ	
-ˆğ ×&Ñ&Ô(ÜĞ EÓFˆF7‰OØˆMà×!Ñ! $§(¡(§-¡-×"2Ñ"2Ô3ÜĞ 6Ó7ˆF7‰OØˆMà×!Ñ!Ó#ˆÙÜĞ @ÓAˆF7‰OØˆMáØˆHğ 	#Ø×3Ñ3Øk ;°óˆFô 
-L‰LĞFÔGà—{‘{×.Ñ.×5Ñ5ØØ#)°fÑ=Ğ>ØØØğ 6ó ˆHğ #×*Ñ*¨1Ñ-×5Ñ5×=Ñ=×CÑCÓEˆKØ $ˆF9ÑØ$/ˆF=Ñ!Ø%0ˆF>Ñ"à× Ñ Ô"äL‰LĞ:Ô;ğ ˆ
-øô ¤Ğ)ò 	#ÜM‰MĞHÌ#ÈaË&ÔQÜĞ FÓGˆF7‰OØ× Ñ ×"Ğ"ğ ˆ
-ûô ò 	#ÜM‰MĞHÌ#ÈaË&ÔQÜĞ FÓGˆF7‰OØ× Ñ ×"Ğ"àˆ
-ûğ	#ús%   ÂB<E ÅG2Å=FÆG2Æ*=G-Ç-G2c                 óş  — dddddddœ}| j                  «       rt        d«      |d<   |S | j                  | j                  j                  j
-                  «      rt        d«      |d<   |S | j
-                  «       }|st        d«      |d<   |S 	 | j                  |«      }t        j                  d«       |j                  j                  j                  d	d
-|dœgdd
-d¬«      }|j                  d   j                  j                  }||d<   | j!                  |«      }|j#                  |«       d|d<   | j%                  «        t        j                  d«       |S # t&        t(        f$ rH}t        j+                  dt-        |«      «       t        d«      |d<   | j/                  «        Y d}~|S d}~wt0        $ rH}t        j+                  dt-        |«      «       t        d«      |d<   | j/                  «        Y d}~|S d}~ww xY w)aÉ  
-        Generate SEO meta-tags (title, description, keywords).
-
-        Args:
-            product: product.template record
-
-        Returns:
-            Dict with:
-                - success: bool
-                - meta_title: str (max 60 chars)
-                - meta_description: str (max 160 chars)
-                - meta_keywords: str (comma-separated, max 200 chars)
-                - raw_response: str
-                - error: str (if failed)
-        Fr   )rB   rD   rE   Ú
-meta_keywordsrG   r   rq   r   rr   rH   z4[SEO-AI] Calling OpenAI API for meta-tags generationrI   rJ   rK   rN   iô  rO   rP   r   rG   TrB   z([SEO-AI] Meta-tags generation successfulz5[SEO-AI] OpenAI error during meta-tags generation: %srV   Nz5[SEO-AI] Unexpected error in meta-tags generation: %sz-Unexpected error during meta-tags generation.)r-   r   r=   r   rJ   rW   r#   Ú_build_meta_tags_promptr   r*   rY   rZ   r[   r\   r]   rM   Ú_parse_meta_tags_responser_   r`   r   r   r   ra   r1   rb   )	r!   rc   rd   re   rf   rg   rG   rh   ri   s	            r"   Úgenerate_meta_tagszAISEOService.generate_meta_tags%  sğ  € ğ" ØØ "ØØØñ
-
-ˆğ ×&Ñ&Ô(ÜĞ EÓFˆF7‰OØˆMà×!Ñ! $§(¡(§-¡-×"2Ñ"2Ô3ÜĞ 6Ó7ˆF7‰OØˆMà×!Ñ!Ó#ˆÙÜĞ @ÓAˆF7‰OØˆMğ 	#Ø×1Ñ1°'Ó:ˆFäL‰LĞOÔPà—{‘{×.Ñ.×5Ñ5ØØ#)°fÑ=Ğ>ØØØğ 6ó ˆHğ $×+Ñ+¨AÑ.×6Ñ6×>Ñ>ˆLØ%1ˆF>Ñ"à×3Ñ3°LÓAˆFØM‰M˜&Ô!Ø $ˆF9Ñà× Ñ Ô"äL‰LĞCÔDğ ˆ
-øô ¤Ğ)ò 	#ÜM‰MĞQÔSVĞWXÓSYÔZÜĞ FÓGˆF7‰OØ× Ñ ×"Ğ"ğ ˆ
-ûô ò 	#ÜM‰MĞQÔSVĞWXÓSYÔZÜĞ OÓPˆF7‰OØ× Ñ ×"Ğ"àˆ
-ûğ	#ús%   ÂCE ÅG<Å%=F(Æ(G<Æ4=G7Ç7G<c                 óğ   — |rdj                  |«      nd}d|j                  › d|j                  r|j                  j                  nd› d|j                  xs d› d|j                  xs d› d	|› d
-|› d|› d}|S )
-z,Build the prompt for description generation.z, z
-not specifiedzµYou are a professional e-commerce copywriter specializing in SEO-optimized product descriptions.
-
-Generate an SEO-optimized product description for this product:
-
-**Product Name**: ú
-**Category**: z
-Not specifiedz
-**Current Description**: zNot providedz
-**Technical Specifications**: z 
-
-**Requirements**:
-1. Write in z tone
-2. Target word count: z0 words
-3. Incorporate these keywords naturally: a  
-4. Make it persuasive and action-oriented
-5. Focus on customer benefits, not just features
-6. Include a compelling call-to-action
-7. Optimize for search engines (natural keyword placement)
-
-**Output Format** (JSON):
-{
-    "description": "Main product description (HTML formatted with <p>, <ul>, <li>)",
-    "bullets": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
-    "meta_title": "SEO title (max 60 chars)",
-    "meta_description": "SEO meta description (max 160 chars)"
-}
-
-Generate the description now:)ÚjoinÚnameÚcateg_idrC   Údescription_sale)r!   rc   r>   r?   r@   Ú
-keywords_textrf   s          r"   rX   z&AISEOService._build_description_prompto  s©   € ñ 08˜Ÿ	™	 (Ô+¸_ˆ
-ğğ —<‘<.ğ !Ø(/×(8Ò(8ˆw×Ñ×$Ò$¸oĞNğ OØ!×-Ñ-Ò?°Ğ@ğ AØ&×7Ñ7ÒI¸>ĞJğ K
-ğ ˆFğ Ø!lğ #*Ø*7¨ğ 9ğ!ˆğ6 ˆ
-r$   rg   c                 óÖ  — 	 |j                  «       }|j                  d«      r|dd }|j                  d«      r|dd }|j                  d«      r|dd }t        j                  |«      }|j                  dd«      |j                  d	g «      |j                  d
-d«      dd |j                  dd«      dd
- dœS # t        j                  $ r t        j                  d«       |g dddœcY S w xY w)z0Parse JSON response from description generation.ú```jsoné   Nú```é   éıÿÿÿrC   r   rF   rD   r5   rE   é    )rC   rF   rD   rE   z5[SEO-AI] Failed to parse description response as JSON©	rt   Ú
-startswithÚendswithÚjsonÚloadsÚgetÚJSONDecodeErrorr   r    ©r!   rg   ÚcleanedÚdatas       r"   r^   z(AISEOService._parse_description_response–  sù   € ğ	Ø—n‘nÓ&ˆGØ×!Ñ! )Ô,Ø! ! "˜+Ø×!Ñ! %Ô(Ø! ! "˜+Ø×Ñ Ô&Ø! # 2˜,ä—:‘:˜gÓ&ˆDğ  $Ÿx™x¨
-°rÓ:ØŸ8™8 I¨rÓ2Ø"Ÿh™h |°RÓ8¸¸"Ğ=Ø$(§H¡HĞ-?ÀÓ$DÀTÀcĞ$Jñ	ğ 
-øô ×#Ñ#ò 	ÜO‰OĞSÔTà'ØØ Ø$&ñ	ò 
-ğ	ús   ‚B3B6 Â6/C(Ã'C(c           
-      ó¨   — |r8dj                  |j                  «       D cg c]
-  \  }}d|› d|› ‘Œ c}}«      nd}d|› d|› d|› d|› d		}|S c c}}w )
-z!Build the prompt for translation.ú
-z- z: ÚNonez,Translate this e-commerce product text from z to z.
-
-**Text to translate**:
-z,
-
-**Glossary** (must be preserved exactly):
-zä
-
-**Requirements**:
-1. Preserve all terms in the glossary
-2. Maintain professional tone for e-commerce
-3. Keep HTML tags unchanged
-4. Keep SEO context intact
-5. Do NOT add explanations, only provide the translation
-
-Translation:)r}   Úitems)	r!   rk   rl   rm   rn   ÚsrcÚtgtÚ
-glossary_textrf   s	            r"   rs   z&AISEOService._build_translation_prompt³  s‡   € ñ ğ Ÿ	™	Ø/7¯~©~Ó/?×@¡8 3¨ˆr#b˜˜Ò
-Ó@ô
-à!ğ 	ğ BÀ+ÀÈdĞS^ĞR_ğ `ğ €ğ ğ €ğ 	
-ğ
-ˆğ  ˆ
-ùó' 
-As   ¡A
-c                 ó’   — d|j                   › d|j                  r|j                  j                   nd› d|j                  xs d› d}|S )z*Build the prompt for meta-tags generation.zFGenerate SEO-optimized meta-tags for this product:
-
-**Product Name**: r|   ÚUnknownz
-**Description**: z
-Not availableaÁ  
-
-**Output Format** (JSON):
-{
-    "meta_title": "Compelling SEO title (max 60 characters)",
-    "meta_description": "Engaging meta description (max 160 characters)",
-    "meta_keywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
-}
-
-**Requirements**:
-- Meta title: Include main keyword, max 60 chars
-- Meta description: Action-oriented, max 160 chars, include main keyword
-- Meta keywords: 3-5 most relevant keywords
-
-Generate the meta-tags:)r~   r   rC   )r!   rc   rf   s      r"   rx   z$AISEOService._build_meta_tags_promptÑ  s[   € ğà—<‘<.ğ !Ø(/×(8Ò(8ˆw×Ñ×$Ò$¸iĞHğ IØ×%Ñ%Ò8¨Ğ9ğ :ğ	ˆğ& ˆ
-r$   c                 ó¸  — 	 |j                  «       }|j                  d«      r|dd }|j                  d«      r|dd }|j                  d«      r|dd }t        j                  |«      }|j                  dd«      dd	 |j                  d
-d«      dd |j                  dd«      dd
- dœS # t        j                  $ r t        j                  d«       ddddœcY S w xY w)z.Parse JSON response from meta-tags generation.rƒ   r„   Nr…   r†   r‡   rD   r   r5   rE   rˆ   rw   éÈ   )rD   rE   rw   z3[SEO-AI] Failed to parse meta-tags response as JSONr‰   r   s       r"   ry   z&AISEOService._parse_meta_tags_responseè  sï   € ğ	Ø—n‘nÓ&ˆGØ×!Ñ! )Ô,Ø! ! "˜+Ø×!Ñ! %Ô(Ø! ! "˜+Ø×Ñ Ô&Ø! # 2˜,ä—:‘:˜gÓ&ˆDğ #Ÿh™h |°RÓ8¸¸"Ğ=Ø$(§H¡HĞ-?ÀÓ$DÀTÀcĞ$JØ!%§¡¨/¸2Ó!>¸tÀĞ!Dñğ 
-øô ×#Ñ#ò 	ÜO‰OĞQÔRà Ø$&Ø!#ñò 
-ğ	ús   ‚B%B( Â(.CÃCc                 ó@   — d| j                   d<   d| j                   d<   y)z-Reset failure counters on successful request.r   r   Nr   )r(   r0   s    r"   r`   zAISEOService._record_success  s#   € à01ˆ×Ñ˜nÑ-Ø59ˆ×ÑĞ1Ò2r$   )r   N)Úprofessionalr   N)N)Ú__name__Ú
-__module__Ú__qualname__Ú_nameÚ_descriptionr(   r7   r   rQ   r   r   r#   Úboolr-   r1   Úintr=   ra   r   r   Úanyrj   ru   rz   rX   r^   rs   rx   ry   r`   © r$   r"   r   r      så  „ à€EØQ€Lğ Ø!ØñĞğ
- Ğà‡YYğ'˜X fÑ-ò 'ó ğ'ğ*¨ó ó.
-ğ¨ğ °ó ğB #ØØ(,ñZğ ğZğ ğ	Zğ
- ˜4 ™9Ñ%ğZğ 
-ˆc3ˆh‰ó
-ZğB .2ñPàğPğ ğPğ ğ	Pğ
- ˜4  S ™>Ñ*ğPğ 
-ˆc3ˆh‰ó
-PğdH¨T°#°s°(©^ó HğT%ğ ğ%ğ ğ	%ğ
- ˜4 ™9Ñ%ğ%ğ 
-
-ó
-%ğN°Cğ ¸DÀÀcÀ¹Nó ğ:àğğ ğğ ğ	ğ
- s˜Cx‘.ğğ 
-
-ó
-ğ<°#ó ğ.°#ğ ¸$¸sÀC¸x¹.ó ô6:r$   r   )ÚloggingrŒ   Úhashlibr6   Útypingr   r   r   r   r   r   Úodoor	   r
-   r   r   Úodoo.exceptionsr
-   Úopenair   r   r   r   ÚImportErrorÚ	getLoggerr    r   Ú
-AbstractModelr   r¨   r$   r"   ú<module>r²      sq   ğÛ Û Û Û ß .Ó .ß (ç 'Ó 'İ %ğß7Ñ7Ø€Jğ ˆ'×
-Ñ
-˜HÓ
-%€ôr:6×'Ñ'õ r:øğ
- ò Ø‚Jğús   ¸A, Á,A6Á5A6
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\glossary.cpython-312.pyc =====
-Ë
-
-    !•4i  ã                   ó~   — d dl Z d dlmZ d dlmZmZmZmZ  e j                  e	«      Z
- G d„ dej                  «      Zy)é    N)ÚDict)ÚmodelsÚfieldsÚapiÚ_c            	       ó^  — e Zd ZdZdZdZ ej                   ed«      d ed«      ¬«      Z	 ej                   ed«      d ed	«      ¬«      Z
- ej                   ed
-«      d ed«      ¬«      Z ej                  d ed
-«      fd ed«      fd ed«      fd ed«      fg ed«      d¬«      Z
- ej                   ed«       ed«      ¬«      Z ej                    ed«      d¬«      Zdd ed«      fgZej(                  dedeeef   fd „«       Zej(                  deeeeef   f   fd!„«       Zy")#Ú
-SEOAIGlossaryzseo.ai.glossaryz1SEO AI Glossary - Technical terms for translationzlanguage_code, term asczEnglish TermTzOriginal English term)ÚstringÚrequiredÚhelpÚTranslationzTranslated termz
-Language Codez'Target language code (e.g., it, es, fr)ÚproductÚProductÚ	technicalÚ	TechnicalÚ	marketingÚ	MarketingÚbrandÚBrandÚCategory)Ú	selectionr
-   ÚdefaultÚNoteszUsage notes or context)r
-   r   ÚActive)r
-   r   Úunique_term_languagezunique(term, language_code)z*This term already exists for this languageÚ
-language_codeÚreturnc                 ó¶   — | j                  dd|fdg«      }i }|D ]  }|j                  ||j                  <   Œ t        j	                  dt        |«      |«       |S )zÖ
-        Get glossary dictionary for a specific language.
-
-        Args:
-            language_code: Language code (e.g., 'it', 'es')
-
-        Returns:
-            Dict mapping English terms to translations
-        r   ú=©Úactiver   Tz1[SEO-AI] Loaded %d glossary terms for language %s)ÚsearchÚtranslationÚtermÚ_loggerÚinfoÚlen)Úselfr   Úglossary_recordsÚ
-glossary_dictÚrecords        úA/mnt/extra-addons/ecommerce_seo_translator_pro/models/glossary.pyÚ_get_glossary_for_languagez(SEOAIGlossary._get_glossary_for_language=   sr   € ğ  Ÿ;™;Ø
-˜c =Ğ1Ø!ğ(
-ó Ğğ
- ˆ
-Ø&ò 	<ˆFØ)/×);Ñ);ˆM˜&Ÿ+™+Ò&ğ	<ô 	‰Ø?Ü
-Ó 
-ô	
-ğ
- Ğó    c                 óÂ   — | j                  dg«      }i }|D ]E  }|j                  |vri ||j                  <   |j                  ||j                     |j                  <   ŒG |S )zŠ
-        Get all glossaries organized by language.
-
-        Returns:
-            Dict mapping language codes to term dictionaries
-        r    )r"   r   r#   r$   )r(   r)   Ú
-glossariesr+   s       r,   Ú_get_all_glossariesz!SEOAIGlossary._get_all_glossariesX   sr   € ğ  Ÿ;™;Ğ(=Ğ'>Ó?Ğàˆ
-Ø&ò 	OˆFØ×#Ñ#¨:Ñ5Ø35
-˜6×/Ñ/Ñ0à<B×<NÑ<NˆJv×+Ñ+Ñ,¨V¯[©[Ò9ğ		Oğ Ğr.   N)Ú__name__Ú
-__module__Ú__qualname__Ú_nameÚ_descriptionÚ_orderr   ÚCharr   r$   r#   r   Ú	SelectionÚcategoryÚTextÚnotesÚBooleanr!   Ú_sql_constraintsr   ÚmodelÚstrr   r-   r1   © r.   r,   r	   r	      s‘  „ à€EØF€LØ
-&€Fàˆ6;‰;ÙÓ ØÙ
-Ğ&Ó
-'ô€Dğ &—+‘+ÙÓØÙ
-Ğ Ó
-!ô€Kğ  F—K‘KÙÓ!ØÙ
-Ğ8Ó
-9ô€Mğ  ˆv×Ñà
-™˜)›Ğ%Ø
-™!˜K›.Ğ)Ø
-™!˜K›.Ğ)Ø
-‘a˜“jĞ!ğ	
-ñ ‹}Øô	€Hğ 
-ˆFK‰KÙ‹zÙ
-Ğ'Ó
-(ô
-€Eğ
- ˆV^‰^Ù‹{Øô€Fğ 
-#Ø)Ù
-Ğ:Ó;ğ	
-ğĞğ 	‡YYğ¸ğ ÀÀSÈ#ÀXÁò ó ğğ4 	‡YYğ T¨#¨t°C¸°H©~Ğ*=Ñ%>ò ó ñr.   r	   )
-ÚloggingÚtypingr   Úodoor   r   r   r   Ú	getLoggerr2   r%   ÚModelr	   rA   r.   r,   ú<module>rG      s5   ğÛ İ ß 'Ó 'à
-ˆ'×
-Ñ
-˜HÓ
-%€ôaF—L‘Lõ ar.   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\history.cpython-312.pyc =====
-Ë
-
-    *•4iÄ  ã                   ór   — d dl Z d dlmZmZmZmZ  e j                  e«      Z G d„ dej                  «      Z
-y)é    N)ÚmodelsÚfieldsÚapiÚ_c                   óJ  ‡ — e Zd ZdZdZdZdZ ej                  d e	d«      dd¬	«      Z
- ej                  d
- e	d«      fd e	d
-«      fd e	d«      fg e	d«      d¬«      Z ej                  d e	d«      fd e	d«      fd e	d«      fg e	d«      d¬«      Z
- ej                   e	d«       e	d«      ¬«      Z ej                    e	d«       e	d«      ¬«      Z ej                  d e	d «      d!„ d¬"«      Z ej                   e	d#«       e	d$«      ¬«      Z ej(                   e	d%«       e	d&«      ¬«      Z ej,                   e	d'«       e	d(«      ¬«      Z ej0                   e	d)«      d¬*«      Zˆ fd+„Zej8                  d,ed-efd.„«       Zej8                  d1d/ed-efd0„«       Z ˆ xZ!S )2ÚSEOAIHistoryzseo.ai.historyzSEO AI Generation Historyzcreate_date descÚactionzproduct.templateÚProductTÚcascade)ÚstringÚrequiredÚondeleteÚdescription_generationzDescription GenerationÚtranslationÚTranslationÚmeta_tags_generationzMeta-Tags GenerationÚAction)Ú	selectionr   r
-   ÚsuccessÚSuccessÚerrorÚErrorÚpendingÚPendingÚStatus)r   r   ÚdefaultzInput Hash (GDPR)z SHA256 hash of input for privacy)r   ÚhelpzOutput / Resultz"Generated content or error messagez	res.usersÚUserc                 ó.   — | j                   j                  S ©N)ÚenvÚuser)Úselfs    ú@/mnt/extra-addons/ecommerce_seo_translator_pro/models/history.pyú<lambda>zSEOAIHistory.<lambda>6   s   € ˜TŸX™XŸ]™]€ ó    )r   r   ÚreadonlyzTarget Languagez Target language for translationszDuration (milliseconds)zExecution time in millisecondszAPI Call Cost (USD)zEstimated cost from OpenAI APIz
-Creation Date)r   r'   c                 ó’   •— | j                   j                  j                  d«      st        t	        d«      «      ‚t
-        ‰|   «       S )zT
-        Delete history records.
-
-        Only managers can delete history.
-        zbase.group_systemz Only managers can delete history)r!   r"   Ú	has_groupÚ	UserErrorr   ÚsuperÚunlink)r#   Ú	__class__s    €r$   r,   zSEOAIHistory.unlinkN   s:   ø€ ğ x‰x}‰}×&Ñ&Ğ':Ô;ÜœAĞ@ÓAÓBĞBä‰w‰~ÓĞr&   Ú
-product_idÚreturnc                 óz  ‡— | j                  dd|fg«      }t        |«      t        |j                  d„ «      «      t        |j                  d„ «      «      i dœ}dD ]]  Š|j                  ˆfd„«      }t        |«      t        |j                  d„ «      «      t        |j                  d	„ «      «      d
-œ|d   ‰<   Œ_ |S )z
-        Get statistics for a product.
-
-        Args:
-            product_id: Product template ID
-
-        Returns:
-            Dict with statistics
-        r.   ú=c                 ó    — | j                   dk(  S ©Nr   ©Ústatus©Úrs    r$   r%   z3SEOAIHistory.get_stats_by_product.<locals>.<lambda>j   s   € ¸¿¹ÀYÑ9N€ r&   c                 ó    — | j                   dk(  S ©Nr   r4   r6   s    r$   r%   z3SEOAIHistory.get_stats_by_product.<locals>.<lambda>k   s   € °Q·X±XÀÑ5H€ r&   )Ú
-total_actionsÚ
-successfulÚerrorsÚ	by_action)r   r   r   c                 ó"   •— | j                   ‰k(  S r    )r	   )r7   Úaction_types    €r$   r%   z3SEOAIHistory.get_stats_by_product.<locals>.<lambda>p   s   ø€ ¸¿¹ÀKÑ8O€ r&   c                 ó    — | j                   dk(  S r3   r4   r6   s    r$   r%   z3SEOAIHistory.get_stats_by_product.<locals>.<lambda>s   s   € ÀAÇHÁHĞPYÑDY€ r&   c                 ó    — | j                   dk(  S r9   r4   r6   s    r$   r%   z3SEOAIHistory.get_stats_by_product.<locals>.<lambda>t   s   € ÀÇÁÈGÑ@S€ r&   )Útotalr;   r<   r=   )ÚsearchÚlenÚfiltered)r#   r.   ÚrecordsÚstatsÚaction_recordsr?   s        @r$   Úget_stats_by_productz!SEOAIHistory.get_stats_by_productY   sÈ   ø€ ğ —+‘+Ø
-˜3 
-Ğ+ğ
-ó ˆô
- ! ›\Ü˜g×.Ñ.Ñ/NÓOÓPÜ˜'×*Ñ*Ñ+HÓIÓJØñ	
-ˆğ ]ò 	ˆKØ$×-Ñ-Ó.OÓPˆNä˜^Ó,Ü! .×"9Ñ"9Ñ:YÓ"ZÓ[Ü˜n×5Ñ5Ñ6SÓTÓUñ/ˆE+Ñ˜{Ò+ğ	ğ ˆr&   Údaysc                 óØ   — ddl m }m} |j                  «        ||¬«      z
-  }| j                  dd|fg«      }t	        |«      }|j                  «        t        j                  d||«       |S )zÅ
-        Delete history records older than specified days.
-
-        Args:
-            days: Number of days to keep (default 90)
-
-        Returns:
-            int: Number of deleted records
-        r   )ÚdatetimeÚ	timedelta)rJ   Úcreate_dateú<z9[SEO-AI] Cleaned up %d history records older than %d days)rL   rM   ÚnowrC   rD   r,   Ú_loggerÚinfo)r#   rJ   rL   rM   Úcutoff_dateÚold_recordsÚcounts          r$   Úcleanup_old_recordsz SEOAIHistory.cleanup_old_recordsy   si   € ÷ 	1à—l‘l“n¡y°dÔ';Ñ;ˆà—k‘kØ
-˜C Ğ-ğ#
-ó ˆô KÓ ˆØ×ÑÔä‰ĞPĞRWĞY]Ô^àˆr&   )éZ   )"Ú__name__Ú
-__module__Ú__qualname__Ú_nameÚ_descriptionÚ_orderÚ	_rec_namer   ÚMany2oner   r.   Ú	Selectionr	   r5   ÚCharÚ
-input_hashÚTextÚoutputÚuser_idÚtarget_languageÚIntegerÚduration_msÚFloatÚ
-api_call_costÚDatetimerN   r,   r   ÚmodelÚintÚdictrI   rV   Ú
-__classcell__)r-   s   @r$   r   r      s  ø„ à€EØ.€LØ
-€FØ€Ià —‘ØÙ‹|ØØô	€Jğ ˆV×
-Ñ
-à
-%¡qĞ)AÓ'BĞCØ
-™A˜mÓ,Ğ-Ø
-#¡QĞ'=Ó%>Ğ?ğ
-ñ
- ‹{Øô€Fğ ˆV×
-Ñ
-à
-™˜)›Ğ%Ø
-‘a˜“jĞ!Ø
-™˜)›Ğ%ğ
-ñ
- ‹{Øô€Fğ —‘ÙĞ$Ó%Ù
-Ğ1Ó
-2ô€Jğ
- ˆV[‰[ÙĞ"Ó#Ù
-Ğ3Ó
-4ô€Fğ
- ˆfo‰oØÙ‹yÙ*Øô	€Gğ "f—k‘kÙĞ"Ó#Ù
-Ğ1Ó
-2ô€Oğ
- !&—.‘.ÙĞ*Ó+Ù
-Ğ/Ó
-0ô€Kğ
- !F—L‘LÙĞ&Ó'Ù
-Ğ/Ó
-0ô€Mğ
- "&—/‘/ÙÓ!Øô€Kô
-	 ğ 	‡YYğ¨sğ °tò ó ğğ> 	‡YYñ¨ğ °Sò ó ôr&   r   )ÚloggingÚodoor   r   r   r   Ú	getLoggerrX   rQ   ÚModelr   © r&   r$   ú<module>ru      s2   ğÛ ß 'Ó 'à
-ˆ'×
-Ñ
-˜HÓ
-%€ôJ6—<‘<õ Jr&   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\product_template.cpython-312.pyc =====
-Ë
-
-    •4i%  ã                   ó~   — d dl Z d dlmZmZmZmZ d dlmZ  e j                  e	«      Z
- G d„ dej                  «      Zy)é    N)ÚmodelsÚfieldsÚapiÚ_)Ú	UserErrorc                   ór  — e Zd ZdZ ej
-                   ed«       ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z	 ej                  d	 ed
-«      fd ed«      fd
- ed«      fgd	d¬«      Z ej                  d ed«      fd ed«      fd ed«      fgd ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed«       ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed «      d! ed"«      ¬#«      Z ej                   ed$«      d% ed&«      ¬#«      Z ej                   ed'«      d ed(«      ¬#«      Z ej
-                   ed)«      d¬*«      Z ej,                   ed+«      d¬*«      Zd,„ Zd-„ Zd.„ Zd/ed0efd1„Zy2)3ÚProductTemplatezproduct.templatezTechnical Specificationsz6Detailed technical specs for AI description generation)ÚstringÚhelpzAI Generated DescriptionTzDescription generated by AI)r
-   Úreadonlyr   ÚdraftÚDraftÚ	generatedÚ	GeneratedÚerrorÚError)Ú	selectionÚdefaultr   ÚprofessionalÚProfessionalÚcasualÚCasualÚ	technicalÚ	TechnicalzDescription Tone)r   r   r
-   zTarget Word CountéÈ   z0Target words for generated description (150-250))r
-   r   r   zKeywords for Generationz'Comma-separated keywords to incorporatezSuggested KeywordszKeywords suggested by AIz
-Meta Titleé<   zSEO meta title (max 60 chars))r
-   Úsizer   zMeta Descriptioné    z$SEO meta description (max 160 chars)z
-Meta KeywordszSEO keywords (max 200 chars)zGeneration Log)r
-   r   zLast SEO Generationc                 ó  — | j                   d   }| D ]g  }|j                  st        t        d«      «      ‚t        j                  d|j                  «       |j
-                  ||j                  xs d|j                  xs d|j                  xs dj                  d«      D cg c]#  }|j                  «       sŒ|j                  «       ‘Œ% c}¬«      }|d	   rå|j                  |d
-   |j                  dd«      |j                  dd«      d
-t        j                  j!                  «       |d   dœ«       | j                   d   j#                  |j$                  dd	| j'                  |j                  «      |d
-   | j                   j(                  j$                  dœ«       t        j                  d|j                  «       Œ©|j                  d|j                  dd«      dœ«       | j                   d   j#                  |j$                  dd| j'                  |j                  «      |j                  dd«      | j                   j(                  j$                  dœ«       t        t        d«      |j                  dd«      z  «      ‚ yc c}w )z_
-        Generate SEO description using AI.
-
-        Called by button in product form.
-        úai.seo.serviceúProduct name is requiredz.[SEO-AI] Generating description for product %sr   r   Ú ú,)ÚtoneÚ
-word_countÚkeywordsÚsuccessÚdescriptionÚ
-meta_titleÚmeta_descriptionr   Úraw_response)Úai_generated_descriptionr)   r*   Úai_generation_statusÚseo_last_generatedÚai_generation_logúseo.ai.historyÚdescription_generation©Ú
-product_idÚactionÚstatusÚ
-input_hashÚoutputÚuser_idz2[SEO-AI] Description generated successfully for %sr   z
-Unknown error)r-   r/   z!Description generation failed: %sN)ÚenvÚnamer   r   Ú_loggerÚinfoÚgenerate_descriptionÚai_description_toneÚai_description_word_countÚai_keywordsÚsplitÚstripÚwriteÚgetr   ÚDatetimeÚnowÚcreateÚidÚ_hash_inputÚuser)ÚselfÚserviceÚproductÚkÚresults        úI/mnt/extra-addons/ecommerce_seo_translator_pro/models/product_template.pyÚaction_generate_ai_descriptionz.ProductTemplate.action_generate_ai_descriptionX   s0  € ğ —(‘(Ğ+Ñ,ˆàó 1	bˆGØ—<’<Ü¤Ğ"<Ó =Ó>Ğ>äL‰LĞIÈ7Ï<É<ÔXà×1Ñ1ØØ×0Ñ0ÒB°NØ"×<Ñ<ÒCÀØ.5×.AÑ.AÒ.GÀR×-NÑ-NÈsÓ-SÖa¨ĞWX×W^ÑW^ÕW`˜!Ÿ'™')Òağ	 2ó ˆFğ iÒ Ø—
-‘
-Ø06°}Ñ0EØ"(§*¡*¨\¸2Ó">Ø(.¯
-©
-Ğ3EÀrÓ(JØ,7Ü*0¯/©/×*=Ñ*=Ó*?Ø)/°Ñ)?ñ
-ô ğ —‘Ğ)Ñ*×1Ñ1Ø")§*¡*Ø6Ø'Ø"&×"2Ñ"2°7·<±<Ó"@Ø$ ]Ñ3Ø#Ÿx™xŸ}™}×/Ñ/ñ
-3ô ô —‘ĞQĞSZ×S_ÑS_Ö`ğ —
-‘
-Ø,3Ø)/¯©°G¸_Ó)Mñô ğ
- —‘Ğ)Ñ*×1Ñ1Ø")§*¡*Ø6Ø%Ø"&×"2Ñ"2°7·<±<Ó"@Ø$Ÿj™j¨°"Ó5Ø#Ÿx™xŸ}™}×/Ñ/ñ
-3ô ô  ¤Ğ"EÓ FÈÏÉĞT[Ğ]_ÓI`Ñ `ÓaĞañc1	bùò bs   Â!I>Â7I>c                 ó†  — | j                   d   }| j                   j                  }| D ]  }| j                   d   j                  dg«      D ]ğ  }|j                  |k(  rŒ|j                  xs d}|sŒ'| j                   d   j                  |j                  «      }t        j                  d|j                  |j                  «       |j                  |||j                  |¬«      }|d   r¼|j                  |j                  ¬	«      j                  d
-|d   i«       | j                   d   j                  |j                  dd| j                  |«      |d   | j                   j                  j                  |j                  d
-œ«       t        j                  d|j                  «       ŒZ| j                   d   j                  |j                  dd| j                  |«      |j!                  dd«      | j                   j                  j                  |j                  d
-œ«       t        j#                  d|j                  «       Œó Œ y)zg
-        Translate descriptions to all active languages.
-
-        Uses glossary if configured.
-        r    zres.lang)Úactiveú=Tr"   zseo.ai.glossaryz%[SEO-AI] Translating product %s to %s)ÚtextÚsource_langÚtarget_langÚglossaryr'   )Úlangr(   Útranslationr0   )r3   r4   r5   r6   r7   r8   Útarget_languagez&[SEO-AI] Translation successful for %sr   z"[SEO-AI] Translation failed for %sN)r9   rY   ÚsearchÚcoder(   Ú_get_glossary_for_languager;   r<   r:   Útranslate_textÚwith_contextrC   rG   rH   rI   rJ   rD   Úwarning)rK   rL   Úcurrent_langrM   ÚlanguageÚtext_to_translateÚ
-glossary_dictrO   s           rP   Úaction_translate_descriptionsz-ProductTemplate.action_translate_descriptions“   s  € ğ —(‘(Ğ+Ñ,ˆØ—x‘x—}‘}ˆàó 5	YˆGØ ŸH™H ZÑ0×7Ñ7Ğ9NĞ8OÓPó 4
-YØ—=‘= LÒ0Øà$+×$7Ñ$7Ò$=¸2Ğ!Ù(Øà $§¡Ğ):Ñ ;× VÑ VØ—M‘Mó!
-ô —‘Ø;Ø—L‘L (§-¡-ôğ
- !×/Ñ/Ø*Ø ,Ø (§
-¡
-Ø*ğ	 0ó ğ ˜)Ò$Ø×(Ñ(¨h¯m©mĞ(Ó<×BÑBØ% v¨mÑ'<ğDô ğ —H‘HĞ-Ñ.×5Ñ5Ø&-§j¡jØ"/Ø"+Ø&*×&6Ñ&6Ğ7HÓ&IØ"(¨Ñ"7Ø#'§8¡8§=¡=×#3Ñ#3Ø+3¯=©=ñ7ô ô —L‘LĞ!IÈ8Ï=É=ÖYğ —H‘HĞ-Ñ.×5Ñ5Ø&-§j¡jØ"/Ø")Ø&*×&6Ñ&6Ğ7HÓ&IØ"(§*¡*¨W°bÓ"9Ø#'§8¡8§=¡=×#3Ñ#3Ø+3¯=©=ñ7ô ô —O‘OĞ$HÈ(Ï-É-ÖXòi4
-Yñ5	Yó    c                 ó@  — | j                   d   }| D ]	  }|j                  st        t        d«      «      ‚t        j                  d|j                  «       |j
-                  |«      }|d   r|j                  |j                  dd«      |j                  dd«      |j                  dd«      t        j                  j                  «       |d	   d
-œ«       | j                   d   j                  |j                  dd| j                  |j                  «      d
-|j                  dd«      › d|j                  dd«      › | j                   j                  j                  dœ«       t        j                  d|j                  «       Œo| j                   d   j                  |j                  dd| j                  |j                  «      |j                  dd«      | j                   j                  j                  dœ«       t        t        d«      |j                  dd«      z  «      ‚ y)z2
-        Generate SEO meta-tags using AI.
-        r    r!   z$[SEO-AI] Generating meta-tags for %sr'   r)   r"   r*   Ú
-meta_keywordsr+   )r)   r*   ri   r.   r/   r0   Úmeta_tags_generationzTitle: z, Description: r2   z0[SEO-AI] Meta-tags generated successfully for %sr   zMeta-tags generation failed: %sN)r9   r:   r   r   r;   r<   Úgenerate_meta_tagsrC   rD   r   rE   rF   rG   rH   rI   rJ   )rK   rL   rM   rO   s       rP   Úaction_generate_meta_tagsz)ProductTemplate.action_generate_meta_tagsÓ   sÒ  € ğ —(‘(Ğ+Ñ,ˆàó &	`ˆGØ—<’<Ü¤Ğ"<Ó =Ó>Ğ>äL‰LĞ?ÀÇÁÔNà×/Ñ/°Ó8ˆFàiÓ Ø—
-‘
-Ø"(§*¡*¨\¸2Ó">Ø(.¯
-©
-Ğ3EÀrÓ(JØ%+§Z¡Z°ÀÓ%DÜ*0¯/©/×*=Ñ*=Ó*?Ø)/°Ñ)?ñô ğ —‘Ğ)Ñ*×1Ñ1Ø")§*¡*Ø4Ø'Ø"&×"2Ñ"2°7·<±<Ó"@Ø '¨¯
-©
-°<ÀÓ(DĞ'EÀ_ĞU[×U_ÑU_Ğ`rĞtvÓUwĞTxĞyØ#Ÿx™xŸ}™}×/Ñ/ñ
-3ô ô —‘ĞOĞQX×Q]ÑQ]Ö^ğ —‘Ğ)Ñ*×1Ñ1Ø")§*¡*Ø4Ø%Ø"&×"2Ñ"2°7·<±<Ó"@Ø$Ÿj™j¨°"Ó5Ø#Ÿx™xŸ}™}×/Ñ/ñ
-3ô ô  ¤Ğ"CÓ DÀvÇzÁzĞRYĞ[]ÓG^Ñ ^Ó_Ğ_ñM&	`rg   rU   Úreturnc                 ód   — ddl }|j                  |j                  «       «      j                  «       S )z—
-        Hash input for privacy (GDPR compliant).
-
-        Args:
-            text: Text to hash
-
-        Returns:
-            str: SHA256 hash
-        r   N)ÚhashlibÚsha256ÚencodeÚ	hexdigest)rK   rU   ro   s      rP   rI   zProductTemplate._hash_input  s%   € ó 	Ø~‰~˜dŸk™k›mÓ,×6Ñ6Ó8Ğ8rg   N)Ú__name__Ú
-__module__Ú__qualname__Ú_inheritr   ÚTextr   Útechnical_specificationsÚHtmlr,   Ú	Selectionr-   r>   ÚIntegerr?   ÚCharr@   Úai_generated_keywordsr)   r*   ri   r/   rE   r.   rQ   rf   rl   ÚstrrI   © rg   rP   r	   r	      s2  „ à!€Hà*˜vŸ{™{ÙĞ+Ó,Ù
-ĞGÓ
-Hô Ğğ
-  +˜vŸ{™{ÙĞ+Ó,ØÙ
-Ğ,Ó
--ô Ğğ ,˜6×+Ñ+à
-‘a˜“jĞ!Ø
-™!˜K›.Ğ)Ø
-‘a˜“jĞ!ğ
-ğ
- ØôĞğ +˜&×*Ñ*à
-™Q˜~Ó.Ğ/Ø
-‘q˜“{Ğ#Ø
-™!˜K›.Ğ)ğ
-ğ
- ÙĞ#Ó$ôĞğ !/ §¡ÙĞ$Ó%ØÙ
-ĞAÓ
-Bô!Ğğ &—+‘+ÙĞ*Ó+Ù
-Ğ8Ó
-9ô€Kğ
- (˜FŸK™KÙĞ%Ó&ØÙ
-Ğ)Ó
-*ôĞğ —‘Ù‹Ø
-Ù
-Ğ.Ó
-/ô€Jğ #v—{‘{ÙĞ#Ó$Ø
-Ù
-Ğ5Ó
-6ôĞğ  F—K‘KÙÓ!Ø
-Ù
-Ğ-Ó
-.ô€Mğ $˜Ÿ™ÙĞ!Ó"ØôĞğ
- )˜Ÿ™ÙĞ&Ó'ØôĞò
-9bòv>Yò@,`ğ\9 ğ 9¨ô 9rg   r	   )
-ÚloggingÚodoor   r   r   r   Úodoo.exceptionsr   Ú	getLoggerrs   r;   ÚModelr	   r   rg   rP   ú<module>r…      s5   ğÛ ß 'Ó 'İ %à
-ˆ'×
-Ñ
-˜HÓ
-%€ôD9f—l‘lõ D9rg   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\seo_config.cpython-312.pyc =====
-Ë
-
-    •4i‹  ã                   ór   — d dl Z d dlmZmZmZmZ  e j                  e«      Z G d„ dej                  «      Z
-y)é    N)ÚmodelsÚfieldsÚapiÚ_c                   óÈ  ‡ — e Zd ZdZdZdgZ ej                  ddgdd ed«      ¬	«      Z	 ej                   ed
-«       ed«      ¬«      Z ej                  d
- ed«      fd ed«      fd ed«      fgd
- ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed«      d ed«      ¬«      Z ej                   ed «      d ed!«      ¬«      Z ej                   ed"«      d# ed$«      ¬«      Zej,                  ˆ fd%„«       Zˆ fd&„Zˆ xZS )'ÚSEOAIConfigz
-seo.ai.configzSEO AI Configurationzres.config.settings)ÚopenaizOpenAI (GPT-4))ÚmockzMock (Testing)r	   TzAI Provider)Ú	selectionÚdefaultÚrequiredÚstringzOpenAI API Keyz API key from platform.openai.com)r   ÚhelpÚprofessionalÚProfessionalÚcasualÚCasualÚ	technicalÚ	TechnicalzDefault Description Tone)r   r   r   zDefault Word CountéÈ   z/Default target words for descriptions (150-250))r   r   r   zEnable Rate Limitingz'Limit to 5 requests per minute per userzEnable Async GenerationFz(Use background jobs (requires queue_job)zEnable Batch Generationz&Allow generating for multiple productszGDPR: Mask Content in Logsz-Hash sensitive content for privacy compliancezAPI Request Timeout (seconds)é   zTimeout for OpenAI API callsc                 óê  •— t         ‰|   «       }| j                  d   j                  «       }|j	                  dd«      |d<   |j	                  dd«      |d<   t        |j	                  dd	«      «      |d
-<   |j	                  dd«      dk(  |d
-<   |j	                  dd«      dk(  |d<   |j	                  dd«      dk(  |d<   |j	                  dd«      dk(  |d<   t        |j	                  dd«      «      |d<   |S )z!Get current configuration values.úir.config_parameterú+ecommerce_seo_translator_pro.openai_api_keyÚ Úopenai_api_keyú)ecommerce_seo_translator_pro.default_toner   Údefault_description_toneú'ecommerce_seo_translator_pro.word_countÚ200Údefault_word_countú*ecommerce_seo_translator_pro.rate_limitingÚTrueÚenable_rate_limitingú*ecommerce_seo_translator_pro.async_enabledÚFalseÚenable_async_generationú*ecommerce_seo_translator_pro.batch_enabledÚbatch_generation_enabledú&ecommerce_seo_translator_pro.gdpr_maskÚgdpr_mask_contentú$ecommerce_seo_translator_pro.timeoutÚ30Úrequest_timeout_seconds)ÚsuperÚ
-get_valuesÚenvÚsudoÚ	get_paramÚint)ÚselfÚresÚparamsÚ	__class__s      €úC/mnt/extra-addons/ecommerce_seo_translator_pro/models/seo_config.pyr0   zSEOAIConfig.get_valuesJ   s!  ø€ ô ‰gÑ Ó"ˆØ—‘Ğ/Ñ0×5Ñ5Ó7ˆà &× 0Ñ 0Ğ1^Ğ`bÓ cˆĞÑØ*0×*:Ñ*:Ğ;fĞhvÓ*wˆĞ&Ñ'Ü$'¨×(8Ñ(8Ğ9bĞdiÓ(jÓ$kˆĞ Ñ!Ø&,×&6Ñ&6Ğ7cĞekÓ&lĞpvÑ&vˆĞ"Ñ#Ø)/×)9Ñ)9Ğ:fĞhoÓ)pĞtzÑ)zˆĞ%Ñ&Ø*0×*:Ñ*:Ğ;gĞioÓ*pĞtzÑ*zˆĞ&Ñ'Ø#)×#3Ñ#3Ğ4\Ğ^dÓ#eĞioÑ#oˆĞÑ Ü),¨V×-=Ñ-=Ğ>dĞfjÓ-kÓ)lˆĞ%Ñ&àˆ
-ó    c                 óÊ  •— t         ‰|   «        | j                  d   j                  «       }| j                  r|j                  d| j                  «       |j                  d| j                  «       |j                  dt        | j                  «      «       |j                  dt        | j                  «      «       |j                  dt        | j                  «      «       |j                  dt        | j                  «      «       |j                  dt        | j                  «      «       |j                  d	t        | j                  «      «       t        j                  d
-«       y)zSave configuration values.r   r   r   r   r"   r%   r(   r*   r,   z[SEO-AI] Configuration savedN)r/   Ú
-set_valuesr1   r2   r   Ú	set_paramr   Ústrr!   r$   r'   r)   r+   r.   Ú_loggerÚinfo)r5   r7   r8   s     €r9   r<   zSEOAIConfig.set_values[   s  ø€ ä
-‰ÑÔØ—‘Ğ/Ñ0×5Ñ5Ó7ˆà×ÒØ×ÑĞJÈD×L_ÑL_Ô`à×ÑĞDÀd×FcÑFcÔdØ×ÑĞBÄCÈ×H_ÑH_ÓD`ÔaØ×ÑĞEÄsÈ4×KdÑKdÓGeÔfØ×ÑĞEÄsÈ4×KgÑKgÓGhÔiØ×ÑĞEÄsÈ4×KhÑKhÓGiÔjØ×ÑĞAÄ3Àt×G]ÑG]ÓC^Ô_Ø×ÑĞ?ÄÀT×EaÑEaÓAbÔcä‰Ğ3Õ4r:   )Ú__name__Ú
-__module__Ú__qualname__Ú_nameÚ_descriptionÚ_inheritr   Ú	Selectionr   Úai_providerÚCharr   r   ÚIntegerr!   ÚBooleanr$   r'   r)   r+   r.   r   Úmodelr0   r<   Ú
-__classcell__)r8   s   @r9   r   r      sÅ  ø„ à€EØ)€LØ%Ğ&€Hà"&×"Ñ"à(Ø&ğ
-ğ ØÙÓô€Kğ !V—[‘[ÙĞ!Ó"Ù
-Ğ1Ó
-2ô€Nğ
-  0˜v×/Ñ/à
-™Q˜~Ó.Ğ/Ø
-‘q˜“{Ğ#Ø
-™!˜K›.Ğ)ğ
-ğ
- ÙĞ+Ó,ô Ğğ (˜Ÿ™ÙĞ%Ó&ØÙ
-Ğ@Ó
-AôĞğ *˜6Ÿ>™>ÙĞ'Ó(ØÙ
-Ğ8Ó
-9ôĞğ -˜fŸn™nÙĞ*Ó+ØÙ
-Ğ9Ó
-:ôĞğ  .˜vŸ~™~ÙĞ*Ó+ØÙ
-Ğ7Ó
-8ô Ğğ '˜Ÿ™ÙĞ-Ó.ØÙ
-Ğ>Ó
-?ôĞğ -˜fŸn™nÙĞ0Ó1ØÙ
-Ğ-Ó
-.ôĞğ 	‡YYóó ğ÷ 5ğ 5r:   r   )ÚloggingÚodoor   r   r   r   Ú	getLoggerrA   r?   ÚModelr   © r:   r9   ú<module>rS      s2   ğÛ ß 'Ó 'à
-ˆ'×
-Ñ
-˜HÓ
-%€ôd5&—,‘,õ d5r:   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\models\__pycache__\__init__.cpython-312.pyc =====
-Ë
-
-    ã”4iƒ   ã                   ó@   — d dl mZ d dl mZ d dl mZ d dl mZ d dl mZ y)é   )Ú
-ai_service)Úproduct_template)Ú
-seo_config)Úglossary)ÚhistoryN)Ú r   r   r   r   r   © ó    úA/mnt/extra-addons/ecommerce_seo_translator_pro/models/__init__.pyú<module>r      s   ğİ İ İ İ Ş r
-   
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\security\ir.model.access.csv =====
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_seo_config_user,seo.ai.config user,model_seo_ai_config,base.group_user,1,1,1,0
-access_seo_glossary_user,seo.ai.glossary user,model_seo_ai_glossary,base.group_user,1,1,1,0
-access_seo_history_user,seo.ai.history user,model_seo_ai_history,base.group_user,1,0,0,0
-access_seo_config_manager,seo.ai.config manager,model_seo_ai_config,base.group_system,1,1,1,1
-access_seo_glossary_manager,seo.ai.glossary manager,model_seo_ai_glossary,base.group_system,1,1,1,1
-access_seo_history_manager,seo.ai.history manager,model_seo_ai_history,base.group_system,1,1,1,1
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\security\security.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data noupdate="1">
-
-        <!-- Security Groups -->
-        <record id="group_ecommerce_seo_ai" model="res.groups">
-            <field name="name">SEO AI User</field>
-            <field name="comment">User can generate descriptions, translations, and meta-tags</field>
-            <field name="users" eval="[(4, ref('base.user_admin'))]"/>
-        </record>
-
-        <record id="group_ecommerce_seo_manager" model="res.groups">
-            <field name="name">SEO AI Manager</field>
-            <field name="comment">Manager can manage configuration, glossary, and audit history</field>
-            <field name="implied_ids" eval="[(4, ref('group_ecommerce_seo_ai'))]"/>
-            <field name="users" eval="[(4, ref('base.user_admin'))]"/>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\static\src\js\seo_preview.js =====
-/**
- * SEO AI - SERP Preview Widget
- * Displays search engine result page preview for products
- */
-
-odoo.define('ecommerce_seo_translator_pro.seo_preview', function(require) {
-    'use strict';
-
-    const AbstractAction = require('web.AbstractAction');
-    const core = require('web.core');
-    const _t = core._t;
-
-    const SEOPreview = AbstractAction.extend({
-        template: 'seo.preview.template',
-
-        init(parent, action) {
-            this._super(parent, action);
-            this.product_id = action.params.product_id;
-        },
-
-        start() {
-            this._update_preview();
-            return this._super();
-        },
-
-        _update_preview() {
-            const self = this;
-
-            this._rpc({
-                route: '/seo-ai/meta-preview',
-                params: {
-                    product_id: this.product_id,
-                },
-            }).then(function(result) {
-                if (result.success) {
-                    self._render_preview(result);
-                }
-            });
-        },
-
-        _render_preview(data) {
-            const title_el = this.$el.find('.serp-title');
-            const url_el = this.$el.find('.serp-url');
-            const desc_el = this.$el.find('.serp-description');
-
-            title_el.text(data.title || 'Untitled');
-            url_el.text(data.url || 'example.com');
-            desc_el.text((data.description || '').substring(0, 160) + '...');
-        },
-
-        batch_generate(action, product_ids) {
-            const self = this;
-
-            return this._rpc({
-                route: '/seo-ai/batch-generate',
-                params: {
-                    product_ids,
-                    action,
-                },
-            }).then(function(result) {
-                if (result.success) {
-                    self.do_notify(_t('Success'), result.message);
-                } else {
-                    self.do_warn(_t('Error'), result.error);
-                }
-            });
-        },
-    });
-
-    return {
-        SEOPreview,
-    };
-});
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\tests\mock_ai_provider.py =====
-"""Mock AI Provider for testing without OpenAI API."""
-
-import json
-from typing import Dict, List, Optional
-
-
-class MockAIProvider:
-    """Mock provider that returns deterministic responses for testing."""
-
-    @staticmethod
-    def generate_description(
-        product_name: str,
-        description: str,
-        tone: str = 'professional',
-        word_count: int = 200,
-        keywords: Optional[List[str]] = None,
-    ) -> Dict[str, any]:
-        """Mock description generation."""
-        return {
-            'description': f'''<p>Discover the exceptional {product_name}. 
-            This premium product offers outstanding performance and reliability. 
-            Designed with precision and crafted with excellence. 
-            {description}</p>
-            <ul>
-            <li>High quality construction</li>
-            <li>Professional design</li>
-            <li>Excellent value for money</li>
-            </ul>''',
-            'bullets': [
-                'High quality construction',
-                'Professional design',
-                'Excellent value for money',
-                'Long-lasting durability',
-            ],
-            'meta_title': f'{product_name} - Premium Quality',
-            'meta_description': f'Discover the exceptional {product_name}. Professional design and outstanding performance.',
-        }
-
-    @staticmethod
-    def translate_text(
-        text: str,
-        source_lang: str,
-        target_lang: str,
-        glossary: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, str]:
-        """Mock translation."""
-        translation_map = {
-            ('en', 'it'): {
-                'product': 'prodotto',
-                'high quality': 'alta qualitÃ ',
-                'premium': 'premium',
-                'design': 'design',
-            },
-            ('en', 'es'): {
-                'product': 'producto',
-                'high quality': 'alta calidad',
-                'premium': 'premium',
-                'design': 'diseÃ±o',
-            },
-        }
-
-        lang_pair = (source_lang, target_lang)
-        glossary_dict = translation_map.get(lang_pair, {})
-
-        if glossary:
-            glossary_dict.update(glossary)
-
-        translated = text
-        for original, replacement in glossary_dict.items():
-            translated = translated.replace(original, replacement)
-
-        return {
-            'translation': translated,
-        }
-
-    @staticmethod
-    def generate_meta_tags(
-        product_name: str,
-        description: str,
-        keywords: Optional[List[str]] = None,
-    ) -> Dict[str, str]:
-        """Mock meta-tags generation."""
-        keywords_list = keywords or ['product', 'quality', 'design']
-        keywords_str = ', '.join(keywords_list[:5])
-
-        return {
-            'meta_title': f'{product_name} - Premium Quality | Shop Now',
-            'meta_description': f'{description[:150]}...',
-            'meta_keywords': keywords_str,
-        }
-
-
-class MockOpenAIClient:
-    """Mock OpenAI client for testing."""
-
-    def __init__(self, api_key: str = 'sk-mock-test'):
-        self.api_key = api_key
-
-    def chat_completions_create(self, **kwargs):
-        """Mock chat completions."""
-        messages = kwargs.get('messages', [])
-        content = messages[0]['content'] if messages else ''
-
-        response_content = json.dumps({
-            'description': '<p>Mock generated description</p>',
-            'bullets': ['Feature 1', 'Feature 2'],
-            'meta_title': 'Mock Title',
-            'meta_description': 'Mock description',
-            'meta_keywords': 'mock, test, product',
-        })
-
-        class MockMessage:
-            def __init__(self, content):
-                self.content = content
-
-        class MockChoice:
-            def __init__(self, message):
-                self.message = message
-
-        class MockResponse:
-            def __init__(self, content):
-                self.choices = [MockChoice(MockMessage(content))]
-
-        return MockResponse(response_content)
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\tests\test_ai_generation.py =====
-import logging
-from unittest.mock import patch, MagicMock
-from odoo.tests import TransactionCase
-from odoo.exceptions import UserError
-
-_logger = logging.getLogger(__name__)
-
-
-class TestAISEOGeneration(TransactionCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.product = cls.env['product.template'].create({
-            'name': 'Test Product',
-            'description': 'A test product for SEO AI generation',
-            'description_sale': 'Premium test product with excellent features',
-            'list_price': 99.99,
-        })
-
-    def test_01_glossary_creation(self):
-        glossary = self.env['seo.ai.glossary'].create({
-            'term': 'warranty',
-            'translation': 'garanzia',
-            'language_code': 'it',
-            'category': 'product',
-        })
-
-        self.assertTrue(glossary.id)
-        self.assertEqual(glossary.term, 'warranty')
-        self.assertEqual(glossary.translation, 'garanzia')
-
-    def test_02_glossary_for_language(self):
-        self.env['seo.ai.glossary'].create({
-            'term': 'product',
-            'translation': 'prodotto',
-            'language_code': 'it',
-            'category': 'product',
-        })
-
-        glossary_dict = self.env['seo.ai.glossary']._get_glossary_for_language('it')
-        self.assertIn('product', glossary_dict)
-        self.assertEqual(glossary_dict['product'], 'prodotto')
-
-    def test_03_history_creation(self):
-        history = self.env['seo.ai.history'].create({
-            'product_id': self.product.id,
-            'action': 'description_generation',
-            'status': 'success',
-            'output': 'Generated description',
-            'user_id': self.env.user.id,
-        })
-
-        self.assertTrue(history.id)
-        self.assertEqual(history.status, 'success')
-
-    def test_04_product_hash_input(self):
-        hashed = self.product._hash_input('test content')
-        self.assertEqual(len(hashed), 64)
-
-    def test_05_meta_tags_validation(self):
-        self.product.write({
-            'meta_title': 'Test Title',
-            'meta_description': 'Test Description',
-            'meta_keywords': 'test, keywords',
-        })
-
-        self.assertEqual(self.product.meta_title, 'Test Title')
-        self.assertEqual(self.product.meta_description, 'Test Description')
-
-    def test_06_circuit_breaker(self):
-        service = self.env['ai.seo.service']
-
-        self.assertFalse(service._check_circuit_breaker())
-
-        for _ in range(5):
-            service._record_failure()
-
-        self.assertTrue(service._check_circuit_breaker())
-
-    def test_07_rate_limiting(self):
-        service = self.env['ai.seo.service']
-        user_id = self.env.user.id
-
-        for i in range(4):
-            self.assertFalse(service._check_rate_limit(user_id))
-
-        self.assertTrue(service._check_rate_limit(user_id))
-
-    @patch('ecommerce_seo_translator_pro.models.ai_service.OpenAI')
-    def test_08_description_generation_mock(self, mock_openai):
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = '''
-        {
-            "description": "<p>Test description</p>",
-            "bullets": ["Feature 1", "Feature 2"],
-            "meta_title": "Test Product",
-            "meta_description": "Test description"
-        }
-        '''
-        mock_client.chat.completions.create.return_value = mock_response
-
-        self.env['ir.config_parameter'].sudo().set_param(
-            'ecommerce_seo_translator_pro.openai_api_key', 'sk-test'
-        )
-
-        service = self.env['ai.seo.service']
-        result = service.generate_description(self.product)
-
-        self.assertTrue(result['success'])
-        self.assertIn('description', result)
-
-    @patch('ecommerce_seo_translator_pro.models.ai_service.OpenAI')
-    def test_09_translation_mock(self, mock_openai):
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = 'Descrizione tradotta'
-        mock_client.chat.completions.create.return_value = mock_response
-
-        self.env['ir.config_parameter'].sudo().set_param(
-            'ecommerce_seo_translator_pro.openai_api_key', 'sk-test'
-        )
-
-        service = self.env['ai.seo.service']
-        result = service.translate_text(
-            'Test description',
-            source_lang='en',
-            target_lang='it'
-        )
-
-        self.assertTrue(result['success'])
-        self.assertEqual(result['translation'], 'Descrizione tradotta')
-
-    def test_10_history_stats(self):
-        for _ in range(3):
-            self.env['seo.ai.history'].create({
-                'product_id': self.product.id,
-                'action': 'description_generation',
-                'status': 'success',
-            })
-
-        stats = self.env['seo.ai.history'].get_stats_by_product(self.product.id)
-
-        self.assertGreaterEqual(stats['total_actions'], 3)
-        self.assertGreaterEqual(stats['successful'], 3)
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\tests\__init__.py =====
-from . import test_ai_generation
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\views\glossary_views.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data>
-
-        <!-- SEO AI Glossary Form -->
-        <record id="seo_ai_glossary_form" model="ir.ui.view">
-            <field name="name">seo.ai.glossary.form</field>
-            <field name="model">seo.ai.glossary</field>
-            <field name="arch" type="xml">
-                <form string="Glossary Entry">
-                    <group>
-                        <field name="term"/>
-                        <field name="translation"/>
-                        <field name="language_code"/>
-                        <field name="category"/>
-                        <field name="active"/>
-                    </group>
-                    <group string="Notes">
-                        <field name="notes" nolabel="1"/>
-                    </group>
-                </form>
-            </field>
-        </record>
-
-        <!-- SEO AI Glossary Tree -->
-        <record id="seo_ai_glossary_tree" model="ir.ui.view">
-            <field name="name">seo.ai.glossary.tree</field>
-            <field name="model">seo.ai.glossary</field>
-            <field name="arch" type="xml">
-                <tree string="Glossary">
-                    <field name="term"/>
-                    <field name="translation"/>
-                    <field name="language_code"/>
-                    <field name="category"/>
-                    <field name="active" widget="boolean"/>
-                </tree>
-            </field>
-        </record>
-
-        <!-- SEO AI Glossary Search -->
-        <record id="seo_ai_glossary_search" model="ir.ui.view">
-            <field name="name">seo.ai.glossary.search</field>
-            <field name="model">seo.ai.glossary</field>
-            <field name="arch" type="xml">
-                <search string="Search Glossary">
-                    <field name="term"/>
-                    <field name="translation"/>
-                    <field name="language_code"/>
-                    <separator/>
-                    <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
-                    <filter name="filter_product" string="Product Terms" domain="[('category', '=', 'product')]"/>
-                    <filter name="filter_technical" string="Technical Terms" domain="[('category', '=', 'technical')]"/>
-                    <filter name="filter_marketing" string="Marketing Terms" domain="[('category', '=', 'marketing')]"/>
-                </search>
-            </field>
-        </record>
-
-        <!-- SEO AI Glossary Action -->
-        <record id="action_seo_ai_glossary" model="ir.actions.act_window">
-            <field name="name">Glossary Management</field>
-            <field name="res_model">seo.ai.glossary</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_filter_active': 1}</field>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\views\product_template_views.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data>
-
-        <!-- Product Template Form - AI SEO Tools Tab -->
-        <record id="product_template_form_seo_ai" model="ir.ui.view">
-            <field name="name">product.template.form.seo.ai</field>
-            <field name="model">product.template</field>
-            <field name="inherit_id">product.product_template_form_view</field>
-            <field name="arch" type="xml">
-                <xpath expr="//notebook" position="inside">
-                    <page string="AI SEO Tools" name="seo_ai_tools">
-                        <group>
-                            <group string="Description Generation">
-                                <field name="technical_specifications"/>
-                                <field name="ai_description_tone"/>
-                                <field name="ai_description_word_count"/>
-                                <field name="ai_keywords"/>
-                                <field name="ai_generation_status"/>
-                                <button name="action_generate_ai_description" string="Generate SEO Description" type="object" class="btn-primary" groups="ecommerce_seo_translator_pro.group_ecommerce_seo_ai"/>
-                            </group>
-                            <group string="Generated Content">
-                                <field name="ai_generated_description" widget="html"/>
-                                <field name="seo_last_generated"/>
-                            </group>
-                        </group>
-                        <group string="Meta Tags">
-                            <group>
-                                <field name="meta_title"/>
-                                <field name="meta_description"/>
-                                <field name="meta_keywords"/>
-                                <button name="action_generate_meta_tags" string="Generate Meta-Tags" type="object" class="btn-primary" groups="ecommerce_seo_translator_pro.group_ecommerce_seo_ai"/>
-                            </group>
-                            <group>
-                                <button name="action_translate_descriptions" string="Translate All" type="object" class="btn-info" groups="ecommerce_seo_translator_pro.group_ecommerce_seo_ai"/>
-                            </group>
-                        </group>
-                        <group string="Debug Information">
-                            <field name="ai_generation_log" readonly="1"/>
-                        </group>
-                    </page>
-                </xpath>
-            </field>
-        </record>
-
-        <!-- Product Template Search View -->
-        <record id="product_template_search_seo" model="ir.ui.view">
-            <field name="name">product.template.search.seo</field>
-            <field name="model">product.template</field>
-            <field name="inherit_id">product.product_template_search_view</field>
-            <field name="arch" type="xml">
-                <xpath expr="//filter[@name='filter_to_sell']" position="after">
-                    <filter name="filter_seo_generated" string="SEO Generated" domain="[('ai_generation_status', '=', 'generated')]"/>
-                    <filter name="filter_seo_error" string="SEO Errors" domain="[('ai_generation_status', '=', 'error')]"/>
-                </xpath>
-            </field>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\views\seo_config_views.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data>
-
-        <!-- SEO AI Configuration Form -->
-        <record id="seo_ai_config_form" model="ir.ui.view">
-            <field name="name">seo.ai.config.form</field>
-            <field name="model">seo.ai.config</field>
-            <field name="arch" type="xml">
-                <form string="SEO AI Configuration">
-                    <group>
-                        <group string="AI Provider">
-                            <field name="ai_provider"/>
-                            <field name="openai_api_key" password="True" attrs="{'invisible': [('ai_provider', '!=', 'openai')]}"/>
-                        </group>
-                        <group string="Generation Settings">
-                            <field name="default_description_tone"/>
-                            <field name="default_word_count"/>
-                            <field name="enable_rate_limiting"/>
-                            <field name="request_timeout_seconds"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group string="Advanced Options">
-                            <field name="enable_async_generation"/>
-                            <field name="batch_generation_enabled"/>
-                            <field name="gdpr_mask_content"/>
-                        </group>
-                    </group>
-                    <footer>
-                        <button name="action_test_connection" string="Test Connection" type="object" class="btn-primary"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel"/>
-                        <button string="Save" class="btn-primary" type="submit"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
-
-        <!-- Settings Menu -->
-        <record id="action_seo_ai_settings" model="ir.actions.client">
-            <field name="name">SEO AI Settings</field>
-            <field name="tag">res_config_edit</field>
-            <field name="context">{'module': 'ecommerce_seo_translator_pro', 'view_id': 'seo_ai_config_form'}</field>
-        </record>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\views\website_templates.xml =====
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data>
-
-        <!-- Product Page Meta Tags -->
-        <template id="website_product_meta_tags" name="Product Meta Tags" inherit_id="website_sale.product">
-            <xpath expr="//head" position="inside">
-                <t t-if="product.meta_title">
-                    <meta name="title" t-attf-content="#{product.meta_title}"/>
-                </t>
-                <t t-if="product.meta_description">
-                    <meta name="description" t-attf-content="#{product.meta_description}"/>
-                </t>
-                <t t-if="product.meta_keywords">
-                    <meta name="keywords" t-attf-content="#{product.meta_keywords}"/>
-                </t>
-                <!-- Open Graph Tags -->
-                <t t-if="product.meta_title">
-                    <meta property="og:title" t-attf-content="#{product.meta_title}"/>
-                </t>
-                <t t-if="product.meta_description">
-                    <meta property="og:description" t-attf-content="#{product.meta_description}"/>
-                </t>
-            </xpath>
-        </template>
-
-        <!-- SERP Preview Widget -->
-        <template id="seo_serp_preview" name="SERP Preview">
-            <div class="seo-serp-preview">
-                <div class="serp-title" t-esc="title"/>
-                <div class="serp-url" t-esc="url"/>
-                <div class="serp-description" t-esc="description"/>
-            </div>
-        </template>
-
-    </data>
-</odoo>
-
-
-
-===== C:\Users\tomma\OneDrive\Documenti\GitHub\ai-odoo-data-assistant\addons\ecommerce_seo_translator_pro\__pycache__\__init__.cpython-312.pyc =====
-Ë
-
-    Ú”4i1   ã                   ó   — d dl mZ d dl mZ y)é   )Úmodels)ÚcontrollersN)Ú r   r   © ó    ú:/mnt/extra-addons/ecommerce_seo_translator_pro/__init__.pyú<module>r	      s   ğİ Ş r   
-
-
-
