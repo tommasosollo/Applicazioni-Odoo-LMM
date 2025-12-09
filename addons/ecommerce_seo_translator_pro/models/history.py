@@ -47,6 +47,7 @@ class SEOAIHistory(models.Model):
             ('description_generation', _('Description Generation')),
             ('translation', _('Translation')),
             ('meta_tags_generation', _('Meta-Tags Generation')),
+            ('content_confirmation', _('Content Confirmation & Publication')),
         ],
         string=_('Action'),
         required=True,
