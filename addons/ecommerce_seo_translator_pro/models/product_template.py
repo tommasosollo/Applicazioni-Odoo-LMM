@@ -101,6 +101,12 @@ class ProductTemplate(models.Model):
         help=_('SEO keywords for search engines (max 200 chars)'),
     )
 
+    description_ecommerce = fields.Html(
+        string=_('E-commerce Description'),
+        translate=True,
+        help=_('Product description for e-commerce websites'),
+    )
+
     # ===============================================
     # Audit and Logging Fields
     # ===============================================
@@ -123,8 +129,10 @@ class ProductTemplate(models.Model):
 
         Called by button in product form. Uses GPT-4o-mini to create
         SEO-optimized descriptions based on product tone and keywords.
+        Stores result in ai_generated_description field for review before publishing.
         """
         service = self.env['ai.seo.service']
+        current_lang = self.env.lang or 'en_US'
 
         for product in self:
             if not product.name:
@@ -137,6 +145,7 @@ class ProductTemplate(models.Model):
                 tone=product.ai_description_tone or 'professional',
                 word_count=product.ai_description_word_count or 200,
                 keywords=[k.strip() for k in (product.ai_keywords or '').split(',') if k.strip()],
+                language=current_lang,
             )
 
             if result['success']:
@@ -185,19 +194,29 @@ class ProductTemplate(models.Model):
 
         Uses glossary if configured. Translates from current language to all
         other active languages, preserving brand terms and HTML tags.
+        
+        KNOWN ISSUE: Translation feature is not yet fully functional.
+        The field description_ecommerce must be marked as translatable in the model,
+        and the ir.translation system needs proper integration. This is a work-in-progress.
         """
         service = self.env['ai.seo.service']
-        current_lang = self.env.lang
+        current_lang = self.env.lang or 'en_US'
+        
+        _logger.info('[SEO-AI] Starting translation from language: %s', current_lang)
 
         for product in self:
-            text_to_translate = product.ai_generated_description or product.description or ''
+            text_to_translate = product.ai_generated_description or product.description_ecommerce or product.description or ''
             if not text_to_translate:
                 raise UserError(_('No description to translate. Please generate SEO description first.'))
+
+            _logger.info('[SEO-AI] Text to translate (first 100 chars): %s', text_to_translate[:100])
 
             target_languages = self.env['res.lang'].search([
                 ('active', '=', True),
                 ('code', '!=', current_lang)
             ])
+            
+            _logger.info('[SEO-AI] Found %d target languages', len(target_languages))
             
             if not target_languages:
                 raise UserError(_('No other active languages available for translation.'))
@@ -228,11 +247,28 @@ class ProductTemplate(models.Model):
                         _logger.info('[SEO-AI] Got translation for %s: %s...', 
                                     language.code, translation_text[:100])
                         
-                        product.with_context(lang=language.code).write({
-                            'description': translation_text,
-                        })
-                        _logger.info('[SEO-AI] Saved translation for %s (id=%d)', 
-                                    language.code, product.id)
+                        try:
+                            existing_trans = self.env['ir.translation'].search([
+                                ('type', '=', 'model'),
+                                ('name', '=', 'product.template,description_ecommerce'),
+                                ('res_id', '=', product.id),
+                                ('lang', '=', language.code),
+                            ], limit=1)
+                            
+                            if existing_trans:
+                                existing_trans.write({'value': translation_text})
+                                _logger.info('[SEO-AI] Updated translation for %s', language.code)
+                            else:
+                                self.env['ir.translation'].create({
+                                    'type': 'model',
+                                    'name': 'product.template,description_ecommerce',
+                                    'res_id': product.id,
+                                    'lang': language.code,
+                                    'value': translation_text,
+                                })
+                                _logger.info('[SEO-AI] Created translation for %s', language.code)
+                        except Exception as e:
+                            _logger.exception('[SEO-AI] Failed to save translation for %s. This feature requires the description_ecommerce field to be properly configured as translatable', language.code)
 
                         self.env['seo.ai.history'].create({
                             'product_id': product.id,
@@ -282,9 +318,14 @@ class ProductTemplate(models.Model):
         Generate SEO meta-tags using AI.
 
         Generates optimal meta-title (max 60 chars), meta-description (max 160 chars),
-        and keywords for search engine optimization.
+        and keywords for search engine optimization. These are critical for Google
+        search results appearance and click-through rates.
+        
+        The generated tags are stored in meta_title, meta_description, and meta_keywords
+        fields, which are then displayed in the SERP preview section.
         """
         service = self.env['ai.seo.service']
+        current_lang = self.env.lang or 'en_US'
 
         for product in self:
             if not product.name:
@@ -292,7 +333,7 @@ class ProductTemplate(models.Model):
 
             _logger.info('[SEO-AI] Generating meta-tags for %s', product.name)
 
-            result = service.generate_meta_tags(product)
+            result = service.generate_meta_tags(product, language=current_lang)
 
             if result['success']:
                 product.write({
@@ -327,6 +368,60 @@ class ProductTemplate(models.Model):
                 _logger.error('[SEO-AI] Meta-tags generation failed for %s: %s',
                              product.name, result.get('error', ''))
                 raise UserError(_('Meta-tags generation failed: %s') % result.get('error', ''))
+
+    def action_confirm_and_use_content(self):
+        """
+        Confirm and apply AI-generated content to the product.
+        
+        Copies AI-generated description to the e-commerce description field
+        (description_ecommerce) and publishes on website if available.
+        
+        Actions performed:
+        1. Copy ai_generated_description to description_ecommerce (e-commerce field)
+        2. Meta-tags (meta_title, meta_description, meta_keywords) are already set
+        3. Publish on website if website module is active
+        4. Create audit log entry for GDPR compliance
+        
+        This is the final step in the content generation workflow - after confirmation,
+        the content is live and ready for search engines and customers to see.
+        """
+        
+        for product in self:
+            if not product.ai_generated_description:
+                raise UserError(_('No AI-generated description to confirm. Please generate one first.'))
+            
+            _logger.info('[SEO-AI] Confirming content for product %s', product.name)
+            
+            update_vals = {
+                'description_ecommerce': product.ai_generated_description,
+            }
+            
+            website_published = False
+            try:
+                if self.env['ir.module.module'].search_count([
+                    ('name', '=', 'website'),
+                    ('state', '=', 'installed')
+                ]):
+                    update_vals['website_published'] = True
+                    website_published = True
+                    _logger.info('[SEO-AI] Website module detected, publishing product')
+            except:
+                _logger.warning('[SEO-AI] Website module not available, skipping publication')
+            
+            product.write(update_vals)
+            
+            self.env['seo.ai.history'].create({
+                'product_id': product.id,
+                'action': 'content_confirmation',
+                'status': 'success',
+                'input_hash': self._hash_input(product.name),
+                'output': f"Description: {len(product.description_ecommerce) if product.description_ecommerce else 0} chars, "
+                         f"Meta title: {product.meta_title or 'N/A'}, "
+                         f"Published: {website_published}",
+                'user_id': self.env.user.id,
+            })
+            
+            _logger.info('[SEO-AI] Content confirmation successful for %s', product.name)
 
     def _hash_input(self, text: str) -> str:
         """

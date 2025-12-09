@@ -38,6 +38,8 @@
               <group string="Generated Content">
                 <field name="ai_generated_description" widget="html" readonly="1" help="AI-generated product description"/>
                 <field name="seo_last_generated" readonly="1" help="Date when description was last generated"/>
+                <!-- Button to confirm and use generated content -->
+                <button name="action_confirm_and_use_content" string="✓ Confirm and Use" type="object" class="btn-success" help="Copy AI-generated content to product description and publish on website"/>
               </group>
             </group>
             
@@ -55,6 +57,29 @@
                 <!-- Button to translate descriptions to all active languages -->
                 <button name="action_translate_descriptions" string="Translate All" type="object" class="btn-info"/>
               </group>
+            </group>
+
+            <!-- SERP Preview Section -->
+            <!-- Shows how the content will appear in search results -->
+            <group string="Search Results Preview (SERP)">
+              <div class="alert alert-info" style="margin-bottom: 15px;">
+                <b>How your product will appear in Google search results:</b>
+              </div>
+              <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; background-color: #f9f9f9;">
+                <div style="color: #1a0dab; font-size: 14px; font-weight: bold; margin-bottom: 5px;">
+                  <field name="meta_title" readonly="1" nolabel="1" placeholder="Page title..." style="width: 100%;"/>
+                </div>
+                <div style="color: #006621; font-size: 12px; margin-bottom: 8px;">
+                  <span field="create_date" readonly="1" nolabel="1" style="color: #999;"/>
+                </div>
+                <div style="color: #545454; font-size: 13px; line-height: 1.6;">
+                  <field name="meta_description" readonly="1" nolabel="1" placeholder="Page description..." style="width: 100%;"/>
+                </div>
+              </div>
+              <div style="margin-top: 15px; padding: 10px; background-color: #f0f7ff; border-left: 3px solid #2563eb; border-radius: 3px;">
+                <b>Keywords:</b>
+                <field name="meta_keywords" readonly="1" nolabel="1" placeholder="Keywords..." style="width: 100%; margin-top: 5px;"/>
+              </div>
             </group>
             
             <!-- Debug Information Section -->

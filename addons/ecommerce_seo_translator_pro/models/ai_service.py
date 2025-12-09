@@ -153,6 +153,7 @@ class AISEOService(models.TransientModel):
         tone: str = 'professional',
         word_count: int = 200,
         keywords: Optional[List[str]] = None,
+        language: str = 'en_US',
     ) -> Dict[str, any]:
         """
         Generate SEO-optimized product description using OpenAI GPT-4o-mini.
@@ -202,7 +203,7 @@ class AISEOService(models.TransientModel):
 
         try:
             prompt = self._build_description_prompt(
-                product, tone, word_count, keywords
+                product, tone, word_count, keywords, language
             )
 
             _logger.info('[SEO-AI] Calling OpenAI API for description generation')
@@ -329,7 +330,7 @@ class AISEOService(models.TransientModel):
 
         return result
 
-    def generate_meta_tags(self, product) -> Dict[str, any]:
+    def generate_meta_tags(self, product, language: str = 'en_US') -> Dict[str, any]:
         """
         Generate SEO meta-tags (title, description, keywords).
 
@@ -372,7 +373,7 @@ class AISEOService(models.TransientModel):
             return result
 
         try:
-            prompt = self._build_meta_tags_prompt(product)
+            prompt = self._build_meta_tags_prompt(product, language)
 
             _logger.info('[SEO-AI] Calling OpenAI API for meta-tags generation')
 
@@ -413,6 +414,7 @@ class AISEOService(models.TransientModel):
         tone: str,
         word_count: int,
         keywords: Optional[List[str]],
+        language: str = 'en_US',
     ) -> str:
         """
         Build the prompt for description generation.
@@ -422,10 +424,41 @@ class AISEOService(models.TransientModel):
         - Tone and style requirements
         - Target word count and keywords
         - Output format (JSON with description, bullets, meta-tags)
+        - Language specification for multilingual output
         """
         keywords_text = ', '.join(keywords) if keywords else 'not specified'
+        lang_name = self._get_language_name(language)
 
-        prompt = f"""You are a professional e-commerce copywriter specializing in SEO-optimized product descriptions.
+        if lang_name.lower().startswith('ital'):
+            prompt = f"""Sei un esperto copywriter per e-commerce specializzato nella creazione di descrizioni prodotto ottimizzate per la SEO.
+
+Genera una descrizione prodotto SEO-ottimizzata per questo prodotto:
+
+**Nome Prodotto**: {product.name}
+**Categoria**: {product.categ_id.name if product.categ_id else 'Non specificato'}
+**Descrizione Attuale**: {product.description or 'Non fornita'}
+**Specifiche Tecniche**: {product.description_sale or 'Non fornite'}
+
+**Requisiti**:
+1. Scrivi in tono {tone}
+2. Numero di parole obiettivo: {word_count} parole
+3. Incorpora naturalmente queste parole chiave: {keywords_text}
+4. Rendi il testo persuasivo e orientato all'azione
+5. Concentrati sui benefici per il cliente, non solo sulle caratteristiche
+6. Includi un invito all'azione convincente
+7. Ottimizza per i motori di ricerca (posizionamento naturale delle parole chiave)
+
+**Formato di Output** (JSON):
+{{
+    "description": "Descrizione principale del prodotto (formattata in HTML con <p>, <ul>, <li>)",
+    "bullets": ["Beneficio 1", "Beneficio 2", "Beneficio 3", "Beneficio 4"],
+    "meta_title": "Titolo SEO (max 60 caratteri)",
+    "meta_description": "Descrizione meta SEO (max 160 caratteri)"
+}}
+
+Genera la descrizione adesso:"""
+        else:
+            prompt = f"""You are a professional e-commerce copywriter specializing in SEO-optimized product descriptions.
 
 Generate an SEO-optimized product description for this product:
 
@@ -509,7 +542,10 @@ Generate the description now:"""
             [f"- {src}: {tgt}" for src, tgt in glossary.items()]
         ) if glossary else "None"
 
-        prompt = f"""Translate this e-commerce product text from {source_lang} to {target_lang}.
+        source_lang_name = self._get_language_name(source_lang)
+        target_lang_name = self._get_language_name(target_lang)
+
+        prompt = f"""Translate this e-commerce product text from {source_lang_name} to {target_lang_name}.
 
 **Text to translate**:
 {text}
@@ -527,7 +563,7 @@ Generate the description now:"""
 Translation:"""
         return prompt
 
-    def _build_meta_tags_prompt(self, product) -> str:
+    def _build_meta_tags_prompt(self, product, language: str = 'en_US') -> str:
         """
         Build the prompt for meta-tags generation.
         
@@ -536,7 +572,30 @@ Translation:"""
         - Meta description (max 160 chars, action-oriented)
         - Meta keywords (3-5 most relevant keywords)
         """
-        prompt = f"""Generate SEO-optimized meta-tags for this product:
+        lang_name = self._get_language_name(language)
+
+        if lang_name.lower().startswith('ital'):
+            prompt = f"""Genera tag meta SEO-ottimizzati per questo prodotto:
+
+**Nome Prodotto**: {product.name}
+**Categoria**: {product.categ_id.name if product.categ_id else 'Sconosciuta'}
+**Descrizione**: {product.description or 'Non disponibile'}
+
+**Formato di Output** (JSON):
+{{
+    "meta_title": "Titolo SEO attraente (max 60 caratteri)",
+    "meta_description": "Descrizione meta accattivante (max 160 caratteri)",
+    "meta_keywords": "parola_chiave1, parola_chiave2, parola_chiave3, parola_chiave4, parola_chiave5"
+}}
+
+**Requisiti**:
+- Titolo meta: Includi la parola chiave principale, max 60 caratteri
+- Descrizione meta: Orientata all'azione, max 160 caratteri, includi la parola chiave principale
+- Meta parole chiave: 3-5 parole chiave più rilevanti
+
+Genera i tag meta:"""
+        else:
+            prompt = f"""Generate SEO-optimized meta-tags for this product:
 
 **Product Name**: {product.name}
 **Category**: {product.categ_id.name if product.categ_id else 'Unknown'}
@@ -598,3 +657,32 @@ Generate the meta-tags:"""
         """
         self._circuit_breaker['failed_count'] = 0
         self._circuit_breaker['last_failure_time'] = None
+
+    def _get_language_name(self, language_code: str) -> str:
+        """
+        Convert language code to human-readable language name.
+        
+        Args:
+            language_code: Language code (e.g., 'en_US', 'it_IT', 'fr_FR')
+            
+        Returns:
+            str: Language name (e.g., 'English', 'Italian', 'French')
+        """
+        try:
+            lang = self.env['res.lang'].search([('code', '=', language_code)], limit=1)
+            if lang:
+                return lang.name
+        except:
+            pass
+        
+        lang_map = {
+            'en_US': 'English',
+            'en_GB': 'English',
+            'it_IT': 'Italian',
+            'fr_FR': 'French',
+            'de_DE': 'German',
+            'es_ES': 'Spanish',
+            'pt_BR': 'Portuguese',
+            'pt_PT': 'Portuguese',
+        }
+        return lang_map.get(language_code, 'English')
